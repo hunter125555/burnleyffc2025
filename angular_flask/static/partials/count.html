@@ -1,0 +1,16 @@
+<div ng-controller = "PlayerCountController">
+	<form>
+		<input type="text" ng-model="team"/>
+		<button ng-click="loadCounts()">Calculate</button>
+	</form>
+	<table st-table = "counts" class = "table table-striped">
+		<tr>
+			<th>Player</th>
+			<th>Count</th>
+		</tr>
+		<tr ng-repeat="entry in counts">
+			<td>{{ entry[0] }}</td>
+			<td>{{ entry[1] }}</td>
+		</tr>
+	</table>
+</div>

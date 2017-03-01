@@ -1,0 +1,26 @@
+<div ng-controller = "DiffController">
+	<form>
+		<input type="text" ng-model="teamA"/>
+		<input type="text" ng-model="teamB"/>
+		<label> Include bench? : </label>
+		<label>
+    		<input type="radio" ng-model="bench" value="yes">
+   			Yes
+  		</label><br/>
+  		<label>
+    	<input type="radio" ng-model="bench" value="no">
+    		No
+  		</label><br/>
+		<button ng-click="loadDiff()">Calculate</button>
+	</form>
+	<table st-table = "diff" class = "table table-striped">
+		<tr>
+			<th>Player</th>
+			<th>Count</th>
+		</tr>		
+		<tr ng-repeat="entry in diff">
+			<td>{{ entry[0] }}</td>
+			<td>{{ entry[1] }}</td>
+		</tr>
+	</table>
+</div>

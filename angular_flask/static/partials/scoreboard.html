@@ -1,0 +1,21 @@
+<div ng-controller = "ScoreBoardController">
+	<form ng-submit="loadBoard()">
+		<input type="text" ng-model="team"/>
+	</form>
+	<table st-table = "board" class = "table table-striped">
+		<tr>
+			<th>Player</th>
+			<th>Points</th>
+			<th>Transfer Cost</th>
+			<th>GW Score</th>
+			<th>FPL Link</th>
+		</tr>
+		<tr ng-repeat="card in board">
+			<td>{{ card.Player }}</td>
+			<td>{{ card.Points }}</td>
+			<td> {{ card.TC }}</td>
+			<td>{{ card.Score }}</td>
+			<td>{{ card.Link }}</td>
+		</tr>
+	</table>
+</div>
