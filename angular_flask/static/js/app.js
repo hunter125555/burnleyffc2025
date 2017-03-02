@@ -1,6 +1,11 @@
 'use strict';
 
 angular.module('AngularFlask', ['angularFlaskServices', 'smart-table'])
+	.run(function($rootScope) {
+    	$rootScope.teamList = ['Arsenal', 'Bournemouth', 'Burnley', 'Chelsea', 'Crystal Palace', 'Everton', 'Hull', 'Leicester', 
+    	'Liverpool', 'Manchester City',	'Manchester United', 'Middlesbrough', 'Southampton', 'Stoke', 'Sunderland', 'Swansea', 
+    	'Tottenham Hotspur', 'Watford', 'West Brom', 'West Ham'];
+	})
 	.config(['$routeProvider', '$locationProvider',
 		function($routeProvider, $locationProvider) {
 		$routeProvider
@@ -41,3 +46,4 @@ angular.module('AngularFlask', ['angularFlaskServices', 'smart-table'])
 		$locationProvider.html5Mode(true);
 	}])
 ;
+
