@@ -53,8 +53,9 @@ def get_tie_scorecards():
 		teamA_card = helper.team_scoreboard(teamA.lower())
 		teamB_card = helper.team_scoreboard(teamB.lower())
 		scores = []
-		scores.append(teamA_card, teamB_card)
-		return jsonify(scores)
+		scores.append(teamA_card)
+		scores.append(teamB_card)
+		return json.dumps(scores)
 	else:
 		return None
 
