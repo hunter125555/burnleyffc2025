@@ -32,9 +32,12 @@ def get_differentials():
 	else: bench = False 
 	teamA = request.args.get('teamA') + ".txt"
 	teamB = request.args.get('teamB') + ".txt"
-	teamA_counts = helper.get_ffcteamdetails(teamA.lower(), include_bench=bench)
-	teamB_counts = helper.get_ffcteamdetails(teamB.lower(), include_bench=bench)
-	return json.dumps(helper.get_differentials(teamA_counts, teamB_counts).items(), sort_keys = False)
+	if teamA != teamB:
+		teamA_counts = helper.get_ffcteamdetails(teamA.lower(), include_fpl_bench=bench)
+		teamB_counts = helper.get_ffcteamdetails(teamB.lower(), include_fpl_bench=bench)
+		return json.dumps(helper.get_differentials(teamA_counts, teamB_counts).items(), sort_keys = False)
+	else:
+		return None
 
 @app.route('/count', methods = ['GET'])
 def get_player_count():
@@ -42,18 +45,21 @@ def get_player_count():
 	team_name = team_name.lower()
 	return json.dumps(helper.get_ffcteamdetails(team_name).items(), sort_keys= False)
 
-@app.route('/tie', methods = ['GET'])
+@app.route('/tie_details', methods = ['GET'])
 def get_tie_scorecards():
-	home_team_name = request.args.get('home_team') + ".txt"
-	away_team_name = request.args.get('away_team') + ".txt"
-	home_card = helper.team_scoreboard(home_team_name.lower())
-	away_card = helper.team_scoreboard(away_team_name.lower())
-	scores = []
-	scores.append(home_card, away_card)
-	return jsonify(scores)
+	teamA = request.args.get('teamA') + ".txt"
+	teamB = request.args.get('teamB') + ".txt"
+	if teamA != teamB:
+		teamA_card = helper.team_scoreboard(teamA.lower())
+		teamB_card = helper.team_scoreboard(teamB.lower())
+		scores = []
+		scores.append(teamA_card, teamB_card)
+		return jsonify(scores)
+	else:
+		return None
 
 @app.route('/')
-@app.route('/about')
+@app.route('/tie')
 @app.route('/blog')
 @app.route('/scorecard')
 @app.route('/diff')

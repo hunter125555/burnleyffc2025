@@ -6,14 +6,19 @@
 		<select ng-model="teamB" ng-options="team for team in teamList" required>
     		<option value="">Select Team B</option>
 		</select>
-		<label> Include bench? : </label>
+		<label> Include FPL bench? : </label>
 		<label>
-    		<input type="radio" ng-model="bench" value="yes">
-   			Yes
-  		</label><br/>
+    		<input type="radio" ng-model="bench" value="yes"/>Yes
+  		</label>
   		<label>
-    	<input type="radio" ng-model="bench" value="no">
-    		No
+    		<input type="radio" ng-model="bench" value="no"/>No
+  		</label><br/>
+  		<label> Include FFC captain? : </label>
+		<label>
+    		<input type="radio" ng-model="bench" value="yes"/>Yes
+  		</label>
+  		<label>
+    		<input type="radio" ng-model="bench" value="no"/>No
   		</label><br/>
 		<button ng-disabled = "entryForm.$invalid" ng-click="loadDiff()">Calculate</button>
 	</form>

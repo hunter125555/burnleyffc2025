@@ -13,10 +13,12 @@ function AboutController($scope) {
 
 function ScoreBoardController($scope, $http) {
 	$scope.board = [];
-	$scope.team = "arsenal";
+	$scope.displayTable = false;
+	$scope.team = "Arsenal";
 	$scope.loadBoard = function() {
 		$http.get("/scoreboard?team=" + $scope.team).
 			then(function(response) {
+				$scope.displayTable = true;
 				$scope.board = response.data;
 				console.log(response.data);
 		}, function(error) {
@@ -56,8 +58,23 @@ function PlayerCountController($scope, $rootScope, $http) {
 	}
 }
 
-function TieController($scope) {
-
+function TieController($scope, $rootScope, $http) {
+	$scope.boardA = [];
+	$scope.boardB = [];
+	$scope.displayTable = false;
+	$scope.teamA = "Arsenal";
+	$scope.teamB = "Burnley"
+	$scope.loadBoard = function() {
+		$http.get("/tie_details?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB).
+			then(function(response) {
+				$scope.displayTable = true;
+				$scope.boardA = response.data[0];
+				$scope.boardB = response.data[1];
+				console.log(response.data);
+		}, function(error) {
+			console.log(error);
+		});
+	}
 }
 
 function PostListController($scope, Post) {

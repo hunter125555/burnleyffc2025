@@ -1,8 +1,9 @@
 <div ng-controller = "ScoreBoardController">
-	<form ng-submit="loadBoard()">
-		<input type="text" ng-model="team"/>
+	<form name = "entryForm">
+		<input type="text" ng-model="team" required/>
+		<button ng-disabled = "entryForm.$invalid" ng-click="loadBoard()">Populate</button>
 	</form>
-	<table st-table = "board" class = "table table-striped">
+	<table ng-show = "displayTable" st-table = "board" class = "table table-striped">
 		<tr>
 			<th>Player</th>
 			<th>Points</th>
@@ -15,7 +16,7 @@
 			<td>{{ card.Points }}</td>
 			<td> {{ card.TC }}</td>
 			<td>{{ card.Score }}</td>
-			<td>{{ card.Link }}</td>
+			<td><a ng-href = " {{ card.Link}} ">{{ card.Link }}</a></td>
 		</tr>
 	</table>
 </div>

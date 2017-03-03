@@ -14,7 +14,7 @@ angular.module('AngularFlask', ['angularFlaskServices', 'smart-table'])
 			controller: IndexController
 		})
 		.when('/tie', {
-			templateUrl: '../static/partials/about.html',
+			templateUrl: '../static/partials/tie.html',
 			controller: TieController
 		})
 		.when('/post', {

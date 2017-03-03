@@ -1,0 +1,31 @@
+<div ng-controller = "TieController">
+	<form name = "entryForm">
+		<select ng-model="teamA" ng-options="team for team in teamList" required>
+    		<option value="">Select Team A</option>
+		</select>
+		<select ng-model="teamB" ng-options="team for team in teamList" required>
+    		<option value="">Select Team B</option>
+		</select>
+		<button ng-disabled = "entryForm.$invalid" ng-click="loadBoard()">Populate</button>
+	</form>
+	<table ng-show = "displayTable" st-table = "boardA" class = "table table-striped">
+		<tr>
+			<th>Player</th>
+			<th>GW Score</th>
+		</tr>
+		<tr ng-repeat="card in boardA">
+			<td>{{ card.Player }}</td>
+			<td>{{ card.Score }}</td>
+		</tr>
+	</table>
+	<table ng-show = "displayTable" st-table = "boardB" class = "table table-striped">
+		<tr>
+			<th>Player</th>
+			<th>GW Score</th>
+		</tr>
+		<tr ng-repeat="card in boardB">
+			<td>{{ card.Player }}</td>
+			<td>{{ card.Score }}</td>
+		</tr>
+	</table>
+</div>

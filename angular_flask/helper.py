@@ -72,18 +72,18 @@ def get_current_team(code, include_captain_twice = False):
 			current_team.append(player_dir[pick['element']])
 	return current_team, bench
 
-def get_ffcteamdetails(team_file, captain = -1, bench = -1, include_captain_twice = False, include_bench=False):
+def get_ffcteamdetails(team_file, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False):
 	team_details = []
 	team_file = os.path.join(team_folder,team_file)
 	team_name, ffc_team = read_in_team(team_file)
 	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
-	if bench != -1 and captain != -1:
-		fpl_codes[bench-1] = fpl_codes[captain-1]
-	elif captain != -1: fpl_codes.append(fpl_codes[captain-1])
+	if ffc_bench != -1 and ffc_captain != -1:
+		fpl_codes[ffc_bench-1] = fpl_codes[ffc_captain-1]
+	elif ffc_captain != -1: fpl_codes.append(fpl_codes[ffc_captain-1])
 	for code in fpl_codes:
-		current, bench = get_current_team(code, include_captain_twice)
+		current, bench = get_current_team(code, include_fpl_captain_twice)
 		team_details.append(current)
-		if include_bench:
+		if include_fpl_bench:
 			team_details.append(bench)
 	team_details = flatten(team_details)
 	total_count = dict(Counter(team_details))
@@ -127,16 +127,19 @@ def team_scoreboard(filename):
 		board.append(item)
 	return board
 
-def get_scores(filename, captain, bench = -1, home_advtg = False):
+def get_scores(filename, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 	total = 0
 	scores = []
 	gw = get_current_gw()
 	team_file = os.path.join(team_folder,filename)
 	team_name, ffc_team = read_in_team(team_file)
 	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
-	if bench != -1:
-		fpl_codes[bench-1] = fpl_codes[captain-1]
-	else: fpl_codes.append(fpl_codes[captain-1])
+	if ffc_bench != -1 and ffc_captain != -1:
+		fpl_codes[ffc_bench-1] = fpl_codes[ffc_captain-1]
+	elif ffc_captain != -1: 
+		fpl_codes.append(fpl_codes[ffc_captain-1])
+	else:
+		del fpl_codes[ffc_bench - 1]
 	for code in fpl_codes:
 		entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, gw)
 		data = soupify(entry_url)
