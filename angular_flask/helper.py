@@ -17,7 +17,15 @@ order_dict = lambda d: OrderedDict(sorted(d.items(), key = lambda x: x[1], rever
 def get_current_gw():
 	response = requests.get(dynamic_url)
 	data = response.json()
-	return data['current-event']    
+	return data['current-event']
+
+def get_ffc_players(team_name):
+	team_file = os.path.join(team_folder,team_file)
+	team_name, ffc_team = read_in_team(team_file)
+	player_names = []
+	for row in ffc_team:
+		player_names.append(row[0])
+	return player_names
 
 def read_in_team(filename):
 	player_no = 1
