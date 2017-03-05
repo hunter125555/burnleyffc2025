@@ -67,29 +67,37 @@ for team in pdata['teams']:
 def get_team(team_id):
 	return team_dir[team_id]
 
-def get_current_team(code, include_captain_twice = False):
+def get_current_team(code, include_fpl_captain_twice = False, exclude = False):
 	gw = get_current_gw()
 	entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, gw)
 	data = soupify(entry_url)
 	current_team, bench = [], []
 	for pick in data['picks']:
+		if exclude and pick['has_played']:
+			continue
 		if not pick['is_sub']:
 			current_team.append(player_dir[pick['element']])
 		else: bench.append(player_dir[pick['element']])
-		if pick['is_captain'] and include_captain_twice:
+		if pick['is_captain'] and include_fpl_captain_twice:
 			current_team.append(player_dir[pick['element']])
+			if data['active_chip'] == "3xc":
+				current_team.append(player_dir[pick['element']])
+	if data['active_chip'] == "bboost":
+		current_team += bench
 	return current_team, bench
 
-def get_ffcteamdetails(team_file, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False):
+def get_ffcteamdetails(team_file, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False):
 	team_details = []
 	team_file = os.path.join(team_folder,team_file)
 	team_name, ffc_team = read_in_team(team_file)
 	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
 	if ffc_bench != -1 and ffc_captain != -1:
-		fpl_codes[ffc_bench-1] = fpl_codes[ffc_captain-1]
-	elif ffc_captain != -1: fpl_codes.append(fpl_codes[ffc_captain-1])
+		fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
+	elif ffc_captain != -1: fpl_codes.append(fpl_codes[ffc_captain])
+	else:
+		del fpl_codes[ffc_bench]
 	for code in fpl_codes:
-		current, bench = get_current_team(code, include_fpl_captain_twice)
+		current, bench = get_current_team(code, include_fpl_captain_twice, exclude)
 		team_details.append(current)
 		if include_fpl_bench:
 			team_details.append(bench)

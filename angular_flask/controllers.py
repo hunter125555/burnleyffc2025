@@ -33,16 +33,22 @@ def get_scorecard():
 
 @app.route('/differentials', methods = ['GET'])
 def get_differentials():
-	if request.args.get('bench') == "yes": bench = True
-	else: bench = False 
+	bench = True if request.args.get('fplBench') == "yes" else False
+	captain = True if request.args.get('fplCaptain') == "yes" else False
+	exclude = True if request.args.get('exclude') == "yes" else False
 	teamA = request.args.get('teamA') + ".txt"
 	teamB = request.args.get('teamB') + ".txt"
-	if teamA != teamB:
-		teamA_counts = helper.get_ffcteamdetails(teamA.lower(), include_fpl_bench=bench)
-		teamB_counts = helper.get_ffcteamdetails(teamB.lower(), include_fpl_bench=bench)
-		return json.dumps(helper.get_differentials(teamA_counts, teamB_counts).items(), sort_keys = False)
-	else:
-		return None
+	captainA = request.args.get('captainA')
+	captainB = request.args.get('captainB')
+	benchA = request.args.get('benchA')
+	benchB = request.args.get('benchB')
+	ffc_captainA = int(captainA) if captainA != 'null' else -1
+	ffc_benchA = int(benchA) if benchA != 'null' else -1
+	ffc_captainB = int(captainB) if captainB != 'null' else -1
+	ffc_benchB = int(benchB) if benchB != 'null' else -1
+	teamA_counts = helper.get_ffcteamdetails(teamA.lower(), ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude)
+	teamB_counts = helper.get_ffcteamdetails(teamB.lower(), ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude)
+	return json.dumps(helper.get_differentials(teamA_counts, teamB_counts).items(), sort_keys = False)
 
 @app.route('/count', methods = ['GET'])
 def get_player_count():
@@ -58,23 +64,20 @@ def get_tie_scorecards():
 	captainB = request.args.get('captainB')
 	benchA = request.args.get('benchA')
 	benchB = request.args.get('benchB')
-	if teamA != teamB:
-		teamA_card = helper.team_scoreboard(teamA.lower())
-		teamB_card = helper.team_scoreboard(teamB.lower())
-		ffc_captainA = int(captainA) if captainA != None else -1
-		ffc_benchA = int(benchA) if benchA != None else -1
-		ffc_captainB = int(captainB) if captainB != None else -1
-		ffc_benchB = int(benchB) if benchB != None else -1
-		teamA_score = helper.get_scores(teamA.lower(), ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, home_advtg = True)
-		teamB_score = helper.get_scores(teamB.lower(), ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, home_advtg = False)
-		scores = []
-		scores.append(teamA_card)
-		scores.append(teamB_card)
-		scores.append(teamA_score)
-		scores.append(teamB_score)
-		return json.dumps(scores)
-	else:
-		return None
+	teamA_card = helper.team_scoreboard(teamA.lower())
+	teamB_card = helper.team_scoreboard(teamB.lower())
+	ffc_captainA = int(captainA) if captainA != 'null' else -1
+	ffc_benchA = int(benchA) if benchA != 'null' else -1
+	ffc_captainB = int(captainB) if captainB != 'null' else -1
+	ffc_benchB = int(benchB) if benchB != 'null' else -1
+	teamA_score = helper.get_scores(teamA.lower(), ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, home_advtg = True)
+	teamB_score = helper.get_scores(teamB.lower(), ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, home_advtg = False)
+	scores = []
+	scores.append(teamA_card)
+	scores.append(teamB_card)
+	scores.append(teamA_score)
+	scores.append(teamB_score)
+	return json.dumps(scores)
 
 @app.route('/')
 @app.route('/tie')

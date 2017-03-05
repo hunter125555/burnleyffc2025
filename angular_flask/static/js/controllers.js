@@ -31,9 +31,39 @@ function DiffController($scope, $rootScope, $http) {
 	$scope.diff = [];
 	$scope.teamA = null;
 	$scope.teamB = null;
-	$scope.bench = "no";
+	$scope.fplBench = "no";
+	$scope.fplCaptain = "no";
+	$scope.excludeHasPlayed = "no";
+	$scope.displaySub = false;
+	$scope.homeTeam = [];
+	$scope.awayTeam = [];
+	$scope.captainA = null;
+	$scope.captainB = null;
+	$scope.benchA = null;
+	$scope.benchB = null;
+	$scope.loadPlayers = function() {
+		if ($scope.teamA === $scope.teamB) {
+			alert("Two teams cannot be the same");
+		} else {
+			$scope.displaySub = true;
+			$http.get("/player_names?team=" + $scope.teamA).
+				then(function(response) {
+					$scope.homeTeam = response.data;
+					console.log(response.data);
+			}, function(error) {
+				console.log(error);
+			});
+			$http.get("/player_names?team=" + $scope.teamB).
+				then(function(response) {
+					$scope.awayTeam = response.data;
+					console.log(response.data);
+			}, function(error) {
+				console.log(error);
+			});
+		}
+	}
 	$scope.loadDiff = function() {
-		$http.get("/differentials?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&bench=" + $scope.bench).
+		$http.get("/differentials?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&bench=" + $scope.fplBench + "&captain=" + $scope.fplCaptain + "&exclude=" + $scope.excludeHasPlayed +"&captainA=" + $scope.captainA + "&captainB=" + $scope.captainB  + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB).
 			then(function(response) {
 				$scope.diff = response.data;
 				console.log(response.data);
@@ -73,21 +103,25 @@ function TieController($scope, $rootScope, $http) {
 	$scope.homeScore = null;
 	$scope.awayScore = null;
 	$scope.loadPlayers = function() {
-		$scope.displaySub = true;
-		$http.get("/player_names?team=" + $scope.teamA).
-			then(function(response) {
-				$scope.homeTeam = response.data;
-				console.log(response.data);
-		}, function(error) {
-			console.log(error);
-		});
-		$http.get("/player_names?team=" + $scope.teamB).
-			then(function(response) {
-				$scope.awayTeam = response.data;
-				console.log(response.data);
-		}, function(error) {
-			console.log(error);
-		});
+		if ($scope.teamA === $scope.teamB) {
+			alert("Two teams cannot be the same");
+		} else {
+			$scope.displaySub = true;
+			$http.get("/player_names?team=" + $scope.teamA).
+				then(function(response) {
+					$scope.homeTeam = response.data;
+					console.log(response.data);
+			}, function(error) {
+				console.log(error);
+			});
+			$http.get("/player_names?team=" + $scope.teamB).
+				then(function(response) {
+					$scope.awayTeam = response.data;
+					console.log(response.data);
+			}, function(error) {
+				console.log(error);
+			});
+		}
 	}
 	$scope.loadBoard = function() {
 		$http.get("/tie_details?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&captainA=" + $scope.captainA + "&captainB=" + $scope.captainB  + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB).

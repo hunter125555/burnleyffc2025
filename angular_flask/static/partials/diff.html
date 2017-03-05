@@ -8,19 +8,41 @@
 		</select>
 		<label> Include FPL bench? : </label>
 		<label>
-    		<input type="radio" ng-model="bench" value="yes"/>Yes
+    		<input type="radio" ng-model="fplBench" value="yes"/>Yes
   		</label>
   		<label>
-    		<input type="radio" ng-model="bench" value="no"/>No
-  		</label><br/>
-  		<label> Include FFC captain? : </label>
+    		<input type="radio" ng-model="fplBench" value="no"/>No
+  		</label>
+  		<label> Include FPL captain twice? : </label>
 		<label>
-    		<input type="radio" ng-model="bench" value="yes"/>Yes
+    		<input type="radio" ng-model="fplCaptain" value="yes"/>Yes
   		</label>
   		<label>
-    		<input type="radio" ng-model="bench" value="no"/>No
-  		</label><br/>
-		<button ng-disabled = "entryForm.$invalid" ng-click="loadDiff()">Calculate</button>
+    		<input type="radio" ng-model="fplCaptain" value="no"/>No
+  		</label>
+  		<label> Exclude players already played? : </label>
+		<label>
+    		<input type="radio" ng-model="excludeHasPlayed" value="yes"/>Yes
+  		</label>
+  		<label>
+    		<input type="radio" ng-model="excludeHasPlayed" value="no"/>No
+  		</label>
+  		<button ng-disabled = "entryForm.$invalid" ng-click="loadPlayers()">Enter</button>
+  	</form>
+  	<form ng-show = "displaySub" name = "subForm">
+  		<select ng-model="captainA" ng-options="idx*1 as player for (idx, player) in homeTeam">
+    		<option value="">Select Home Captain</option>
+		</select>
+		<select ng-model="captainB" ng-options="idx*1 as player for (idx, player) in awayTeam">
+    		<option value="">Select Away Captain</option>
+		</select>
+		<select ng-model="benchA" ng-options="idx*1 as player for (idx, player) in homeTeam">
+    		<option value="">Select Home Bench</option>
+		</select>
+		<select ng-model="benchB" ng-options="idx*1 as player for (idx, player) in awayTeam">
+    		<option value="">Select Away Bench</option>
+		</select>
+		<button ng-click="loadDiff()">Populate Differentials</button>
 	</form>
 	<table st-table = "diff" class = "table table-striped">
 		<tr>

@@ -23,8 +23,11 @@
 		</select>
 		<button ng-click="loadBoard()">Populate Scorecards</button>
 	</form>
-	<table style="float: left" ng-show = "displayTable" st-table = "boardA" class = "table table-striped">
-		<caption>{{teamA}}</caption>
+	<div ng-show = "displayTable">
+		<h2>{{teamA}} {{homeScore}} - {{awayScore}} {{teamB}}</h2>
+	</div>
+	<table style="float: left; width = 45%;" ng-show = "displayTable" st-table = "boardA" class = "table table-striped">
+		<caption><h3>{{teamA}}</h3></caption>
 		<tr>
 			<th>Player</th>
 			<th>GW Score</th>
@@ -34,8 +37,8 @@
 			<td>{{ card.Score }}</td>
 		</tr>
 	</table>
-	<table style="float: right" ng-show = "displayTable" st-table = "boardB" class = "table table-striped">
-		<caption>{{teamB}}</caption>
+	<table style="float: right; width = 45%;" ng-show = "displayTable" st-table = "boardB" class = "table table-striped">
+		<caption><h3>{{teamB}}</h3></caption>
 		<tr>
 			<th>Player</th>
 			<th>GW Score</th>
