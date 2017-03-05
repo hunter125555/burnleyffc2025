@@ -19,6 +19,11 @@ session = api_manager.session
 
 
 # routing for basic pages (pass routing onto the Angular app)
+@app.route('/player_names', methods = ['GET'])
+def get_player_names():
+	team_name = request.args.get('team') + ".txt"
+	team_name = team_name.lower()
+	return json.dumps(helper.get_ffc_players(team_name))
 
 @app.route('/scoreboard', methods = ['GET'])
 def get_scorecard():
@@ -49,12 +54,24 @@ def get_player_count():
 def get_tie_scorecards():
 	teamA = request.args.get('teamA') + ".txt"
 	teamB = request.args.get('teamB') + ".txt"
+	captainA = request.args.get('captainA')
+	captainB = request.args.get('captainB')
+	benchA = request.args.get('benchA')
+	benchB = request.args.get('benchB')
 	if teamA != teamB:
 		teamA_card = helper.team_scoreboard(teamA.lower())
 		teamB_card = helper.team_scoreboard(teamB.lower())
+		ffc_captainA = int(captainA) if captainA != None else -1
+		ffc_benchA = int(benchA) if benchA != None else -1
+		ffc_captainB = int(captainB) if captainB != None else -1
+		ffc_benchB = int(benchB) if benchB != None else -1
+		teamA_score = helper.get_scores(teamA.lower(), ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, home_advtg = True)
+		teamB_score = helper.get_scores(teamB.lower(), ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, home_advtg = False)
 		scores = []
 		scores.append(teamA_card)
 		scores.append(teamB_card)
+		scores.append(teamA_score)
+		scores.append(teamB_score)
 		return json.dumps(scores)
 	else:
 		return None

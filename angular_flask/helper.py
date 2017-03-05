@@ -20,11 +20,11 @@ def get_current_gw():
 	return data['current-event']
 
 def get_ffc_players(team_name):
-	team_file = os.path.join(team_folder,team_file)
+	team_file = os.path.join(team_folder,team_name)
 	team_name, ffc_team = read_in_team(team_file)
 	player_names = []
-	for row in ffc_team:
-		player_names.append(row[0])
+	for (key, value) in ffc_team.items():
+		player_names.append(value[0])
 	return player_names
 
 def read_in_team(filename):
@@ -143,11 +143,11 @@ def get_scores(filename, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 	team_name, ffc_team = read_in_team(team_file)
 	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
 	if ffc_bench != -1 and ffc_captain != -1:
-		fpl_codes[ffc_bench-1] = fpl_codes[ffc_captain-1]
+		fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
 	elif ffc_captain != -1: 
-		fpl_codes.append(fpl_codes[ffc_captain-1])
+		fpl_codes.append(fpl_codes[ffc_captain])
 	else:
-		del fpl_codes[ffc_bench - 1]
+		del fpl_codes[ffc_bench]
 	for code in fpl_codes:
 		entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, gw)
 		data = soupify(entry_url)

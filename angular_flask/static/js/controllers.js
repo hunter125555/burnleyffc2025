@@ -11,7 +11,7 @@ function AboutController($scope) {
 	
 }
 
-function ScoreBoardController($scope, $http) {
+function ScoreBoardController($scope, $rootScope, $http) {
 	$scope.board = [];
 	$scope.displayTable = false;
 	$scope.team = "Arsenal";
@@ -32,7 +32,6 @@ function DiffController($scope, $rootScope, $http) {
 	$scope.teamA = null;
 	$scope.teamB = null;
 	$scope.bench = "no";
-	$scope.teamList = $rootScope.teamList;
 	$scope.loadDiff = function() {
 		$http.get("/differentials?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&bench=" + $scope.bench).
 			then(function(response) {
@@ -62,14 +61,42 @@ function TieController($scope, $rootScope, $http) {
 	$scope.boardA = [];
 	$scope.boardB = [];
 	$scope.displayTable = false;
+	$scope.displaySub = false;
 	$scope.teamA = "Arsenal";
-	$scope.teamB = "Burnley"
+	$scope.teamB = "Burnley";
+	$scope.captainA = null;
+	$scope.captainB = null;
+	$scope.benchA = null;
+	$scope.benchB = null;
+	$scope.homeTeam = [];
+	$scope.awayTeam = [];
+	$scope.homeScore = null;
+	$scope.awayScore = null;
+	$scope.loadPlayers = function() {
+		$scope.displaySub = true;
+		$http.get("/player_names?team=" + $scope.teamA).
+			then(function(response) {
+				$scope.homeTeam = response.data;
+				console.log(response.data);
+		}, function(error) {
+			console.log(error);
+		});
+		$http.get("/player_names?team=" + $scope.teamB).
+			then(function(response) {
+				$scope.awayTeam = response.data;
+				console.log(response.data);
+		}, function(error) {
+			console.log(error);
+		});
+	}
 	$scope.loadBoard = function() {
-		$http.get("/tie_details?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB).
+		$http.get("/tie_details?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&captainA=" + $scope.captainA + "&captainB=" + $scope.captainB  + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB).
 			then(function(response) {
 				$scope.displayTable = true;
 				$scope.boardA = response.data[0];
 				$scope.boardB = response.data[1];
+				$scope.homeScore = response.data[2];
+				$scope.awayScore = response.data[3];
 				console.log(response.data);
 		}, function(error) {
 			console.log(error);

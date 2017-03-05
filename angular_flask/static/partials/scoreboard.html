@@ -1,6 +1,9 @@
 <div ng-controller = "ScoreBoardController">
+	<label>Enter the team to display FPL scores of FFC players</label>
 	<form name = "entryForm">
-		<input type="text" ng-model="team" required/>
+		<select ng-model="team" ng-options="team for team in teamList" required>
+    		<option value="">Select Team</option>
+		</select>
 		<button ng-disabled = "entryForm.$invalid" ng-click="loadBoard()">Populate</button>
 	</form>
 	<table ng-show = "displayTable" st-table = "board" class = "table table-striped">
