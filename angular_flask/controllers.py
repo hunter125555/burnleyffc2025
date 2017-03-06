@@ -33,8 +33,8 @@ def get_scorecard():
 
 @app.route('/differentials', methods = ['GET'])
 def get_differentials():
-	bench = True if request.args.get('fplBench') == "yes" else False
-	captain = True if request.args.get('fplCaptain') == "yes" else False
+	bench = True if request.args.get('bench') == "yes" else False
+	captain = True if request.args.get('captain') == "yes" else False
 	exclude = True if request.args.get('exclude') == "yes" else False
 	teamA = request.args.get('teamA') + ".txt"
 	teamB = request.args.get('teamB') + ".txt"

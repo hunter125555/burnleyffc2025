@@ -73,7 +73,7 @@ def get_current_team(code, include_fpl_captain_twice = False, exclude = False):
 	data = soupify(entry_url)
 	current_team, bench = [], []
 	for pick in data['picks']:
-		if exclude and pick['has_played']:
+		if exclude and pick['has_played'] and len(pick['explain']) <= 1:
 			continue
 		if not pick['is_sub']:
 			current_team.append(player_dir[pick['element']])
