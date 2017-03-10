@@ -164,3 +164,21 @@ def get_scores(filename, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 	if home_advtg:
 		total += math.ceil(0.25*max(scores))
 	return total
+
+def get_capatain_scores(filename):
+	teamcapscores = []
+	gw = get_current_gw()
+	team_file = os.path.join(team_folder,filename)
+	team_name, ffc_team = read_in_team(team_file)
+	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
+	player_names = [entry[0] for entry in list(ffc_team.values())]
+	for name, code in zip(player_names, fpl_codes):
+		capscore = 0
+		for w in range(1, gw + 1):
+			entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, w)
+			data = soupify(entry_url)
+			for pick in data['picks']:
+				if pick['is_captain']:
+					capscore += int(pick['points']) * int(pick['multiplier'])
+		teamcapscores.append((name, capscore, float(capscore) / float (gw)))
+	return teamcapscores

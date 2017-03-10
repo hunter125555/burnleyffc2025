@@ -31,6 +31,12 @@ def get_scorecard():
 	team_name = team_name.lower()
 	return json.dumps(helper.team_scoreboard(team_name))
 
+@app.route('/captain_scores', methods = ['GET'])
+def get_captain_scores():
+	team_name = request.args.get('team') + ".txt"
+	team_name = team_name.lower()
+	return json.dumps(helper.get_capatain_scores(team_name))
+
 @app.route('/differentials', methods = ['GET'])
 def get_differentials():
 	bench = True if request.args.get('bench') == "yes" else False
