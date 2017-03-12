@@ -14,6 +14,15 @@ dynamic_url = 'https://fantasy.premierleague.com/drf/bootstrap-dynamic'
 flatten = lambda l: [item for sublist in l for item in sublist]
 order_dict = lambda d: OrderedDict(sorted(d.items(), key = lambda x: x[1], reverse=True))
 
+def standard_deviation(lst):
+    num_items = len(lst)
+    mean = sum(lst) / num_items
+    differences = [x - mean for x in lst]
+    sq_differences = [d ** 2 for d in differences]
+    ssd = sum(sq_differences)
+    variance = float(ssd) / float(num_items)
+    return math.sqrt(variance)
+
 def get_current_gw():
 	response = requests.get(dynamic_url)
 	data = response.json()
@@ -173,12 +182,13 @@ def get_capatain_scores(filename):
 	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
 	player_names = [entry[0] for entry in list(ffc_team.values())]
 	for name, code in zip(player_names, fpl_codes):
-		capscore = 0
+		capscore = []
 		for w in range(1, gw + 1):
 			entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, w)
 			data = soupify(entry_url)
 			for pick in data['picks']:
 				if pick['is_captain']:
-					capscore += int(pick['points']) * int(pick['multiplier'])
-		teamcapscores.append((name, capscore, float(capscore) / float (gw)))
+					capscore.append(int(pick['points']) * int(pick['multiplier']))
+		sd = standard_deviation(capscore)
+		teamcapscores.append((name, sum(capscore), float(sum(capscore)) / float (gw), sd))
 	return teamcapscores

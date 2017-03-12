@@ -5,6 +5,8 @@ Jinja2==2.7
 MarkupSafe==0.18
 SQLAlchemy==0.8.2
 Werkzeug==0.9.2
+argparse==1.2.1
+beautifulsoup4==4.5.3
 gunicorn==17.5
 itsdangerous==0.22
 mimerender==0.5.4
