@@ -192,3 +192,24 @@ def get_capatain_scores(filename):
 		sd = standard_deviation(capscore)
 		teamcapscores.append((name, sum(capscore), float(sum(capscore)) / float (gw), sd))
 	return teamcapscores
+
+def get_top_chips(rank):
+	chips = {}
+	chips['w'] = 0
+	chips['t'] = 0
+	chips['b'] = 0
+	chips['a'] = 0
+	for i in range(1, 21):
+		standings_url = "https://fantasy.premierleague.com/drf/leagues-classic-standings/313?phase=1&le-page=1&ls-page=%d" % (i)
+		data = soupify(standings_url)
+		entries = data['standings']['results']
+		for entry in entries:
+			if entry['rank'] > 1000: break
+			player_history_url = "https://fantasy.premierleague.com/drf/entry/%d/history" % (entry['entry'])
+			history = soupify(player_history_url)
+			for chip in history['chips']:
+				if chip['chip'] == 2: chips['w'] += 1
+				if chip['chip'] == 4: chips['t'] += 1
+				if chip['chip'] == 5: chips['b'] += 1
+				if chip['chip'] == 3: chips['a'] += 1
+	return chips
