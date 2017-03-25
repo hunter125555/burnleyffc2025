@@ -213,3 +213,16 @@ def get_top_chips(rank):
 				if chip['chip'] == 5: chips['b'] += 1
 				if chip['chip'] == 3: chips['a'] += 1
 	return chips
+
+def get_no_chip_usage():
+	ranks = []
+	for i in range(1, 21):
+		standings_url = "https://fantasy.premierleague.com/drf/leagues-classic-standings/313?phase=1&le-page=1&ls-page=%d" % (i)
+		data = soupify(standings_url)
+		entries = data['standings']['results']
+		for entry in entries:
+			player_history_url = "https://fantasy.premierleague.com/drf/entry/%d/history" % (entry['entry'])
+			history = soupify(player_history_url)
+			if len(history['chips']) <= 1:
+				ranks.append(entry['rank'])
+	return ranks

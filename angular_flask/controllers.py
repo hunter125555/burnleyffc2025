@@ -41,6 +41,10 @@ def get_captain_scores():
 def get_chips():
 	return json.dumps(helper.get_top_chips(1000).items())
 
+@app.route('/nochips', methods = ['GET'])
+def get_no_chips():
+	return json.dumps(helper.get_no_chip_usage())
+
 @app.route('/differentials', methods = ['GET'])
 def get_differentials():
 	bench = True if request.args.get('bench') == "yes" else False
