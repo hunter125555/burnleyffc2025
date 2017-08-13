@@ -37,6 +37,12 @@ def get_captain_scores():
 	team_name = team_name.lower()
 	return json.dumps(helper.get_capatain_scores(team_name))
 
+@app.route('/chip_usage', methods = ['GET'])
+def get_chips_usage():
+	team_name = request.args.get('team') + ".txt"
+	team_name = team_name.lower()
+	return json.dumps(helper.get_chip_usage(team_name.lower()))
+
 @app.route('/topchips', methods = ['GET'])
 def get_chips():
 	return json.dumps(helper.get_top_chips(1000).items())

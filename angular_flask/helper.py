@@ -226,3 +226,22 @@ def get_no_chip_usage():
 			if len(history['chips']) <= 1:
 				ranks.append(entry['rank'])
 	return ranks
+
+def get_chip_usage(team_name):
+	team_file = os.path.join(team_folder,team_name)
+	team_name, ffc_team = read_in_team(team_file)
+	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
+	chips = {}
+	chips['w'] = 0
+	chips['t'] = 0
+	chips['b'] = 0
+	chips['a'] = 0
+	for code in fpl_codes:
+		player_history_url = "https://fantasy.premierleague.com/drf/entry/%d/history" % (code)
+		history = soupify(player_history_url)
+		for chip in history['chips']:
+			if chip['chip'] == 2: chips['w'] += 1
+			if chip['chip'] == 4: chips['t'] += 1
+			if chip['chip'] == 5: chips['b'] += 1
+			if chip['chip'] == 3: chips['a'] += 1
+	return chips
