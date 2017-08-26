@@ -33,6 +33,10 @@ angular.module('AngularFlask', ['angularFlaskServices', 'smart-table'])
 			templateUrl: '../static/partials/count.html',
 			controller: PlayerCountController
 		})
+		.when('/halloffame', {
+			templateUrl: '../static/partials/hall.html',
+			controller: HallController
+		})
 		/* Create a "/blog" route that takes the user to the same place as "/post" */
 		.when('/blog', {
 			templateUrl: '../static/partials/post-list.html',

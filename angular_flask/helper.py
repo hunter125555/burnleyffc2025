@@ -8,6 +8,7 @@ import sys
 import math
 import operator
 
+teamList = ['Arsenal', 'Brighton and Hove Albion', 'Bournemouth', 'Burnley', 'Chelsea', 'Crystal Palace', 'Everton', 'Huddersfield Town', 'Leicester', 'Liverpool', 'Manchester City',	'Manchester United', 'Newcastle United', 'Southampton', 'Stoke', 'Swansea', 'Tottenham Hotspur', 'Watford', 'West Brom', 'West Ham']
 team_folder = os.path.join(os.getcwd(),'teams')
 all_data_url = 'https://fantasy.premierleague.com/drf/bootstrap-static'
 dynamic_url = 'https://fantasy.premierleague.com/drf/bootstrap-dynamic'
@@ -24,9 +25,9 @@ def standard_deviation(lst):
     return math.sqrt(variance)
 
 def get_current_gw():
-	response = requests.get(dynamic_url)
+	response = requests.get("https://fantasy.premierleague.com/drf/entry/5378/history")
 	data = response.json()
-	return data['current-event']
+	return data['entry']['current_event']
 
 def get_ffc_players(team_name):
 	team_file = os.path.join(team_folder,team_name)
@@ -121,8 +122,8 @@ def get_differentials(t1,t2):
 	diff_sorted = order_dict(diff)
 	return diff_sorted
 
-def team_scoreboard(filename):
-	gw = get_current_gw()
+def team_scoreboard(filename, gw = -1):
+	if gw == -1: gw = get_current_gw()
 	team_file = os.path.join(team_folder,filename)
 	team_name, ffc_team = read_in_team(team_file)
 	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
@@ -245,3 +246,24 @@ def get_chip_usage(team_name):
 			if chip['chip'] == 5: chips['b'] += 1
 			if chip['chip'] == 3: chips['a'] += 1
 	return chips
+
+def get_ffc_hof(gw):
+	listScores = []
+	for team in teamList:
+		team = team.lower() + ".txt"
+		board = team_scoreboard(team, int(gw))
+		#import code;code.interact(local=locals())
+		for row in board:
+			listScores.append((row['Player'], row['Score'], row['Link'], team))
+	hof = sorted(listScores, key=lambda x:x[1], reverse=True)
+	hof = hof[:25]
+	board = []
+	for item in hof:
+		obj = {
+			'Player': item[0],
+			'Score': item[1],
+			'Link': item[2],
+			'Team': item[3]
+		}
+		board.append(obj)
+	return board

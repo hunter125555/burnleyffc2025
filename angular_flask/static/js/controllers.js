@@ -27,6 +27,22 @@ function ScoreBoardController($scope, $rootScope, $http) {
 	}
 }
 
+function HallController($scope, $rootScope, $http) {
+	$scope.board = [];
+	$scope.displayTable = false;
+	$scope.gw = "";
+	$scope.loadHof= function() {
+		$http.get("/hof?gw=" + $scope.gw).
+			then(function(response) {
+				$scope.displayTable = true;
+				$scope.board = response.data;
+				console.log(response.data);
+		}, function(error) {
+			console.log(error);
+		});
+	}
+}
+
 function DiffController($scope, $rootScope, $http) {
 	$scope.diff = [];
 	$scope.teamA = null;

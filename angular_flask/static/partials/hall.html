@@ -1,0 +1,22 @@
+<div ng-controller = "HallController">
+	<label>Enter the gameweek to display FFC players Hall of Fame for the given week</label>
+	<form name = "entryForm">
+		<label>Select GW</label>
+    	<input ng-model = "gw" type="number" min="1" max="38" value="1"></input>
+		<button ng-disabled = "entryForm.$invalid" ng-click="loadHof()">Populate</button>
+	</form>
+	<table ng-show = "displayTable" st-table = "board" class = "table table-striped">
+		<tr>
+			<th>Player</th>
+			<th>FFC Team</th>
+			<th>GW Score</th>
+			<th>FPL Link</th>
+		</tr>
+		<tr ng-repeat="card in board">
+			<td>{{ card.Player }}</td>
+			<td>{{ card.Team}}</td>
+			<td>{{ card.Score }}</td>
+			<td><a ng-href = " {{ card.Link}} ">{{ card.Link }}</a></td>
+		</tr>
+	</table>
+</div>

@@ -51,6 +51,11 @@ def get_chips():
 def get_no_chips():
 	return json.dumps(helper.get_no_chip_usage())
 
+@app.route('/hof', methods = ['GET'])
+def get_ffc_hof():
+	gw = request.args.get('gw')
+	return json.dumps(helper.get_ffc_hof(gw))
+
 @app.route('/differentials', methods = ['GET'])
 def get_differentials():
 	bench = True if request.args.get('bench') == "yes" else False
@@ -105,6 +110,7 @@ def get_tie_scorecards():
 @app.route('/scorecard')
 @app.route('/diff')
 @app.route('/player-count')
+@app.route('/halloffame')
 def basic_pages(**kwargs):
 	return make_response(open('angular_flask/templates/index.html').read())
 
