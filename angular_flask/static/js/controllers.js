@@ -36,6 +36,9 @@ function HallController($scope, $rootScope, $http) {
 			then(function(response) {
 				$scope.displayTable = true;
 				$scope.board = response.data;
+				for(var i = 0; i < 15; i++) {
+					console.log($scope.board[i].Player + " (" + $scope.board[i].Team + "): " + $scope.board[i].Score);
+				}
 				console.log(response.data);
 		}, function(error) {
 			console.log(error);
