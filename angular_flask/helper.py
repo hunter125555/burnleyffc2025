@@ -79,15 +79,18 @@ def get_team(team_id):
 
 def get_current_team(code, include_fpl_captain_twice = False, exclude = False):
 	gw = get_current_gw()
-	entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, gw)
+	entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (code, gw)
 	data = soupify(entry_url)
 	current_team, bench = [], []
+	#import code;code.interact(local=locals())
 	for pick in data['picks']:
-		if exclude and pick['has_played'] and len(pick['explain']) <= 1:
-			continue
-		if not pick['is_sub']:
-			current_team.append(player_dir[pick['element']])
-		else: bench.append(player_dir[pick['element']])
+		# if exclude and pick['has_played'] and len(pick['explain']) <= 1:
+		# 	continue
+		# if not pick['is_sub']:
+		# 	current_team.append(player_dir[pick['element']])
+		#else: bench.append(player_dir[pick['element']])
+		if pick['position'] >= 12: bench.append(player_dir[pick['element']])
+		else: current_team.append(player_dir[pick['element']])
 		if pick['is_captain'] and include_fpl_captain_twice:
 			current_team.append(player_dir[pick['element']])
 			if data['active_chip'] == "3xc":
@@ -131,13 +134,13 @@ def team_scoreboard(filename, gw = -1):
 	points, transfer_costs = [], []
 	player_urls = []
 	for code in fpl_codes:
-		entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, gw)
+		entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (code, gw)
 		fpl_url = "https://fantasy.premierleague.com/a/team/%d/event/%d" % (code, gw)
 		player_urls.append(fpl_url)
 		data = soupify(entry_url)
-		points.append(data['points'])
+		points.append(data['entry_history']['points'])
 		transfer_costs.append(data['entry_history']['event_transfers_cost'])
-		scores.append(data['points'] - data['entry_history']['event_transfers_cost'])
+		scores.append(data['entry_history']['points'] - data['entry_history']['event_transfers_cost'])
 	player_names = [item[0] for item in list(ffc_team.values())]
 	table_content = list(map(list, zip(player_names, points, transfer_costs, scores, player_urls)))
 	table_content = sorted(table_content, key=lambda x: x[3], reverse=True)
@@ -167,9 +170,9 @@ def get_scores(filename, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 	else:
 		del fpl_codes[ffc_bench]
 	for code in fpl_codes:
-		entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, gw)
+		entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (code, gw)
 		data = soupify(entry_url)
-		scores.append(data['points'] - data['entry_history']['event_transfers_cost'])
+		scores.append(data['entry_history']['points'] - data['entry_history']['event_transfers_cost'])
 	total = sum(scores)
 	if home_advtg:
 		total += math.ceil(0.25*max(scores))
