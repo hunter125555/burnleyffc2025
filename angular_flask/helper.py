@@ -74,21 +74,31 @@ team_dir = {}
 for team in pdata['teams']:
 	team_dir[team['id']] = team['short_name']
 
+def generate_fix_dir(gw):
+	live_url = "https://fantasy.premierleague.com/drf/event/%d/live" % (gw)	
+	fixture_dir = {}
+	live = soupify(live_url)
+	for obj in live['fixtures']:
+		fixture_dir[obj['id']] = obj['finished']
+	return fixture_dir
+
 def get_team(team_id):
 	return team_dir[team_id]
 
-def get_current_team(code, include_fpl_captain_twice = False, exclude = False):
+def get_current_team(code, fixture_dir, include_fpl_captain_twice = False, exclude = False):
 	gw = get_current_gw()
 	entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (code, gw)
+	live_url = "https://fantasy.premierleague.com/drf/event/%d/live" % (gw)
 	data = soupify(entry_url)
+	live = soupify(live_url)
 	current_team, bench = [], []
-	#import code;code.interact(local=locals())
 	for pick in data['picks']:
-		# if exclude and pick['has_played'] and len(pick['explain']) <= 1:
-		# 	continue
-		# if not pick['is_sub']:
-		# 	current_team.append(player_dir[pick['element']])
-		#else: bench.append(player_dir[pick['element']])
+		#import code;code.interact(local=locals())
+		if exclude:
+			player_id = str(pick['element'])
+			fixture_id = live['elements'][player_id]['explain'][0][1]
+			if fixture_dir[fixture_id]:
+				continue
 		if pick['position'] >= 12: bench.append(player_dir[pick['element']])
 		else: current_team.append(player_dir[pick['element']])
 		if pick['is_captain'] and include_fpl_captain_twice:
@@ -104,13 +114,15 @@ def get_ffcteamdetails(team_file, ffc_captain = -1, ffc_bench = -1, include_fpl_
 	team_file = os.path.join(team_folder,team_file)
 	team_name, ffc_team = read_in_team(team_file)
 	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
+	gw = get_current_gw()
+	fixture_dir = generate_fix_dir(gw)
 	if ffc_bench != -1 and ffc_captain != -1:
 		fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
 	elif ffc_captain != -1: fpl_codes.append(fpl_codes[ffc_captain])
 	else:
 		del fpl_codes[ffc_bench]
 	for code in fpl_codes:
-		current, bench = get_current_team(code, include_fpl_captain_twice, exclude)
+		current, bench = get_current_team(code, fixture_dir, include_fpl_captain_twice, exclude)
 		team_details.append(current)
 		if include_fpl_bench:
 			team_details.append(bench)
