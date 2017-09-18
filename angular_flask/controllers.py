@@ -79,7 +79,7 @@ def get_differentials():
 def get_player_count():
 	team_name = request.args.get('team') + ".txt"
 	team_name = team_name.lower()
-	return json.dumps(helper.get_ffcteamdetails(team_name).items(), sort_keys= False)
+	return json.dumps(helper.get_ffcteamdetails(team_name, include_fpl_bench = True, team_count = True).items(), sort_keys= False)
 
 @app.route('/tie_details', methods = ['GET'])
 def get_tie_scorecards():

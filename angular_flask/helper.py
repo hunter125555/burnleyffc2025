@@ -25,9 +25,9 @@ def standard_deviation(lst):
     return math.sqrt(variance)
 
 def get_current_gw():
-	response = requests.get("https://fantasy.premierleague.com/drf/entry/5378/history")
+	response = requests.get("https://fantasy.premierleague.com/drf/bootstrap-static")
 	data = response.json()
-	return data['entry']['current_event']
+	return data['current-event']
 
 def get_ffc_players(team_name):
 	team_file = os.path.join(team_folder,team_name)
@@ -74,6 +74,10 @@ team_dir = {}
 for team in pdata['teams']:
 	team_dir[team['id']] = team['short_name']
 
+player_team_dir = {}
+for player in pdata['elements']:
+	player_team_dir[player['id']] = team_dir[player['team']]
+
 def generate_fix_dir(gw):
 	live_url = "https://fantasy.premierleague.com/drf/event/%d/live" % (gw)	
 	fixture_dir = {}
@@ -91,9 +95,9 @@ def get_current_team(code, fixture_dir, include_fpl_captain_twice = False, exclu
 	live_url = "https://fantasy.premierleague.com/drf/event/%d/live" % (gw)
 	data = soupify(entry_url)
 	live = soupify(live_url)
-	current_team, bench = [], []
+	current_team, bench, teamcount = [], [], []
 	for pick in data['picks']:
-		#import code;code.interact(local=locals())
+		teamcount.append(player_team_dir[pick['element']])
 		if exclude:
 			player_id = str(pick['element'])
 			fixture_id = live['elements'][player_id]['explain'][0][1]
@@ -107,10 +111,10 @@ def get_current_team(code, fixture_dir, include_fpl_captain_twice = False, exclu
 				current_team.append(player_dir[pick['element']])
 	if data['active_chip'] == "bboost":
 		current_team += bench
-	return current_team, bench
+	return current_team, bench, teamcount
 
-def get_ffcteamdetails(team_file, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False):
-	team_details = []
+def get_ffcteamdetails(team_file, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False, team_count = False):
+	team_details, team_count_details = [], []
 	team_file = os.path.join(team_folder,team_file)
 	team_name, ffc_team = read_in_team(team_file)
 	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
@@ -119,17 +123,26 @@ def get_ffcteamdetails(team_file, ffc_captain = -1, ffc_bench = -1, include_fpl_
 	if ffc_bench != -1 and ffc_captain != -1:
 		fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
 	elif ffc_captain != -1: fpl_codes.append(fpl_codes[ffc_captain])
-	else:
-		del fpl_codes[ffc_bench]
+	elif ffc_bench != -1: del fpl_codes[ffc_bench]
 	for code in fpl_codes:
-		current, bench = get_current_team(code, fixture_dir, include_fpl_captain_twice, exclude)
+		current, bench, teamcount = get_current_team(code, fixture_dir, include_fpl_captain_twice, exclude)
 		team_details.append(current)
+		team_count_details.append(teamcount)
 		if include_fpl_bench:
 			team_details.append(bench)
 	team_details = flatten(team_details)
-	total_count = dict(Counter(team_details))
-	total_count_sorted = order_dict(total_count)
-	return total_count_sorted
+	total_player_count = dict(Counter(team_details))
+	total_player_count_sorted = order_dict(total_player_count)
+	if team_count:
+		team_count_details = flatten(team_count_details)
+		total_team_count = dict(Counter(team_count_details))
+		total_team_count_sorted = order_dict(total_team_count)
+		final_dict = OrderedDict()
+		for k, v in total_player_count_sorted.items() + total_team_count_sorted.items():
+			final_dict[k] = v
+		return final_dict
+	else:
+		return total_player_count_sorted
 
 def get_differentials(t1,t2):
 	players_both_sides = set(list(t1.keys()) + list(t2.keys()))
@@ -267,7 +280,6 @@ def get_ffc_hof(gw):
 	for team in teamList:
 		team = team.lower() + ".txt"
 		board = team_scoreboard(team, int(gw))
-		#import code;code.interact(local=locals())
 		for row in board:
 			listScores.append((row['Player'], row['Score'], row['Link'], team))
 	hof = sorted(listScores, key=lambda x:x[1], reverse=True)
