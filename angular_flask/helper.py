@@ -83,7 +83,7 @@ def generate_fix_dir(gw):
 	fixture_dir = {}
 	live = soupify(live_url)
 	for obj in live['fixtures']:
-		fixture_dir[obj['id']] = obj['finished']
+		fixture_dir[obj['id']] = obj['started']
 	return fixture_dir
 
 def get_team(team_id):
@@ -150,6 +150,21 @@ def get_differentials(t1,t2):
 	diff_sorted = order_dict(diff)
 	return diff_sorted
 
+def get_live_points(entry_code, gw):
+    gw_url = "https://fantasy.premierleague.com/drf/event/{}/live".format(gw)
+    gw_data = soupify(gw_url)
+    entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (entry_code, gw)
+    data = soupify(entry_url)
+    gw_score = 0
+    is_benchboost = (data['active_chip'] == 'bboost')
+    for pick in data['picks']:
+        pick_id = str(pick['element'])
+        if is_benchboost or pick['position'] < 12:
+            gw_score += (gw_data['elements'][pick_id]['stats']['total_points'] * pick['multiplier'])
+    transfer_cost = data['entry_history']['event_transfers_cost']
+    live_score = gw_score - transfer_cost
+    return live_score
+
 def team_scoreboard(filename, gw = -1):
 	if gw == -1: gw = get_current_gw()
 	team_file = os.path.join(team_folder,filename)
@@ -195,9 +210,7 @@ def get_scores(filename, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 	else:
 		del fpl_codes[ffc_bench]
 	for code in fpl_codes:
-		entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (code, gw)
-		data = soupify(entry_url)
-		scores.append(data['entry_history']['points'] - data['entry_history']['event_transfers_cost'])
+		scores.append(get_live_points(code, gw))
 	total = sum(scores)
 	if home_advtg:
 		total += math.ceil(0.25*max(scores))
