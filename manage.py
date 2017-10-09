@@ -38,11 +38,6 @@ def update_epl_players():
 		eplplayers = mongo.db.eplplayers
 		eplplayers.insert_many([{'id': str(player['id']), 'name': player['web_name'], 'team': player['team']} for player in static_data['elements']])
 
-# def update_epl_playerteams():
-# 	with app.app_context():
-# 		eplplayerteams = mongo.db.eplplayerteams
-# 		eplplayerteams.insert_many([{str(player['id']): player['team']} for player in static_data['elements']])
-
 def update_fpl_managers():
 	with app.app_context():
 		fplmanagers = mongo.db.fplmanagers
@@ -79,7 +74,7 @@ def update_live_points():
 		gw = mongo.db.currentgw.find_one()['gw']
 		live_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % gw
 		live_data = soupify(live_url)['elements']
-		livepoints.insert_many({'id': str(player[0]), 'points': player[1]['stats']['total_points']} for player in live_data.items())
+		livepoints.insert_many({'id': str(player[0]), 'fixture': player[1]['explain'][0][1], 'points': player[1]['stats']['total_points']} for player in live_data.items())
 
 def update_ffc_picks():
 	with app.app_context():
@@ -96,6 +91,7 @@ def update_ffc_picks():
 				captain = None
 				vicecaptain = None
 				chip = gw_data['active_chip']
+				points = gw_data['entry_history']['points']
 				transcost = gw_data['entry_history']['event_transfers_cost']
 				for pick in gw_data['picks']:
 					if pick['is_captain']:
@@ -106,7 +102,7 @@ def update_ffc_picks():
 						bench.append(pick['element'])
 					else:
 						playing.append(pick['element'])
-				ffcpicks.insert_one({'captain': captain, 'vicecaptain': vicecaptain, 'chip': chip, 'cost': transcost, 'playing': playing, 'bench': bench})
+				ffcpicks.insert_one({'code': code, 'points': points, 'captain': captain, 'vicecaptain': vicecaptain, 'chip': chip, 'cost': transcost, 'playing': playing, 'bench': bench})
 				#import code; code.interact(local=locals())
 
 # def update_ffc_captains():
@@ -128,9 +124,6 @@ def main():
 	elif args.command == 'update_eplplayers':
 		update_epl_players()
 		print "EPL Players added!"
-	# elif args.command == 'update_eplplayers_teams':
-	# 	update_epl_playerteams()
-	# 	print "EPL Playerteams added!"
 	elif args.command == 'update_fplmanagers':
 		update_fpl_managers()
 		print "FPL Managers added!"

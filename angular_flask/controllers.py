@@ -8,28 +8,25 @@ from flask import send_file, make_response, abort
 from angular_flask import app
 
 # routing for API endpoints, generated from the models designated as API_MODELS
-from angular_flask.core import api_manager
+# from angular_flask.core import api_manager
 from angular_flask.models import *
+from angular_flask.core import mongo
 
-for model_name in app.config['API_MODELS']:
-	model_class = app.config['API_MODELS'][model_name]
-	api_manager.create_api(model_class, methods=['GET', 'POST'])
+# for model_name in app.config['API_MODELS']:
+# 	model_class = app.config['API_MODELS'][model_name]
+# 	api_manager.create_api(model_class, methods=['GET', 'POST'])
 
-session = api_manager.session
+# session = api_manager.session
 
 
 # routing for basic pages (pass routing onto the Angular app)
 @app.route('/player_names', methods = ['GET'])
 def get_player_names():
-	team_name = request.args.get('team') + ".txt"
-	team_name = team_name.lower()
-	return json.dumps(helper.get_ffc_players(team_name))
+	return json.dumps(helper.get_ffc_players(request.args.get('team')))
 
 @app.route('/scoreboard', methods = ['GET'])
 def get_scorecard():
-	team_name = request.args.get('team') + ".txt"
-	team_name = team_name.lower()
-	return json.dumps(helper.team_scoreboard(team_name))
+	return json.dumps(helper.team_scoreboard(request.args.get('team')))
 
 @app.route('/captain_scores', methods = ['GET'])
 def get_captain_scores():
@@ -61,8 +58,8 @@ def get_differentials():
 	bench = True if request.args.get('bench') == "yes" else False
 	captain = True if request.args.get('captain') == "yes" else False
 	exclude = True if request.args.get('exclude') == "yes" else False
-	teamA = request.args.get('teamA') + ".txt"
-	teamB = request.args.get('teamB') + ".txt"
+	teamA = request.args.get('teamA')
+	teamB = request.args.get('teamB')
 	captainA = request.args.get('captainA')
 	captainB = request.args.get('captainB')
 	benchA = request.args.get('benchA')
@@ -71,32 +68,31 @@ def get_differentials():
 	ffc_benchA = int(benchA) if benchA != 'null' else -1
 	ffc_captainB = int(captainB) if captainB != 'null' else -1
 	ffc_benchB = int(benchB) if benchB != 'null' else -1
-	teamA_counts = helper.get_ffcteamdetails(teamA.lower(), ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude)
-	teamB_counts = helper.get_ffcteamdetails(teamB.lower(), ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude)
+	teamA_counts = helper.get_ffcteamdetails(teamA, ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude)
+	teamB_counts = helper.get_ffcteamdetails(teamB, ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude)
 	return json.dumps(helper.get_differentials(teamA_counts, teamB_counts).items(), sort_keys = False)
 
 @app.route('/count', methods = ['GET'])
 def get_player_count():
-	team_name = request.args.get('team') + ".txt"
-	team_name = team_name.lower()
+	team_name = request.args.get('team')
 	return json.dumps(helper.get_ffcteamdetails(team_name, include_fpl_bench = True, team_count = True).items(), sort_keys= False)
 
 @app.route('/tie_details', methods = ['GET'])
 def get_tie_scorecards():
-	teamA = request.args.get('teamA') + ".txt"
-	teamB = request.args.get('teamB') + ".txt"
+	teamA = request.args.get('teamA')
+	teamB = request.args.get('teamB')
 	captainA = request.args.get('captainA')
 	captainB = request.args.get('captainB')
 	benchA = request.args.get('benchA')
 	benchB = request.args.get('benchB')
-	teamA_card = helper.team_scoreboard(teamA.lower())
-	teamB_card = helper.team_scoreboard(teamB.lower())
+	teamA_card = helper.team_scoreboard(teamA)
+	teamB_card = helper.team_scoreboard(teamB)
 	ffc_captainA = int(captainA) if captainA != 'null' else -1
 	ffc_benchA = int(benchA) if benchA != 'null' else -1
 	ffc_captainB = int(captainB) if captainB != 'null' else -1
 	ffc_benchB = int(benchB) if benchB != 'null' else -1
-	teamA_score = helper.get_scores(teamA.lower(), ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, home_advtg = True)
-	teamB_score = helper.get_scores(teamB.lower(), ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, home_advtg = False)
+	teamA_score = helper.get_scores(teamA, ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, home_advtg = True)
+	teamB_score = helper.get_scores(teamB, ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, home_advtg = False)
 	scores = []
 	scores.append(teamA_card)
 	scores.append(teamB_card)
@@ -117,21 +113,21 @@ def basic_pages(**kwargs):
 
 # routing for CRUD-style endpoints
 # passes routing onto the angular frontend if the requested resource exists
-from sqlalchemy.sql import exists
+# from sqlalchemy.sql import exists
 
-crud_url_models = app.config['CRUD_URL_MODELS']
+# crud_url_models = app.config['CRUD_URL_MODELS']
 
 
-@app.route('/<model_name>/')
-@app.route('/<model_name>/<item_id>')
-def rest_pages(model_name, item_id=None):
-	if model_name in crud_url_models:
-		model_class = crud_url_models[model_name]
-		if item_id is None or session.query(exists().where(
-				model_class.id == item_id)).scalar():
-			return make_response(open(
-				'angular_flask/templates/index.html').read())
-	abort(404)
+# @app.route('/<model_name>/')
+# @app.route('/<model_name>/<item_id>')
+# def rest_pages(model_name, item_id=None):
+# 	if model_name in crud_url_models:
+# 		model_class = crud_url_models[model_name]
+# 		if item_id is None or session.query(exists().where(
+# 				model_class.id == item_id)).scalar():
+# 			return make_response(open(
+# 				'angular_flask/templates/index.html').read())
+# 	abort(404)
 
 
 # special file handlers and error handlers

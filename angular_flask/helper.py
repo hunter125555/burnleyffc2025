@@ -8,6 +8,8 @@ import sys
 import math
 import operator
 
+from angular_flask.core import mongo
+
 teamList = ['Arsenal', 'Brighton and Hove Albion', 'Bournemouth', 'Burnley', 'Chelsea', 'Crystal Palace', 'Everton', 'Huddersfield Town', 'Leicester', 'Liverpool', 'Manchester City',	'Manchester United', 'Newcastle United', 'Southampton', 'Stoke', 'Swansea', 'Tottenham Hotspur', 'Watford', 'West Brom', 'West Ham']
 team_folder = os.path.join(os.getcwd(),'teams')
 all_data_url = 'https://fantasy.premierleague.com/drf/bootstrap-static'
@@ -25,16 +27,15 @@ def standard_deviation(lst):
     return math.sqrt(variance)
 
 def get_current_gw():
-	response = requests.get("https://fantasy.premierleague.com/drf/bootstrap-static")
-	data = response.json()
-	return data['current-event']
+	return mongo.db.currentgw.find_one()['gw']
 
 def get_ffc_players(team_name):
-	team_file = os.path.join(team_folder,team_name)
-	team_name, ffc_team = read_in_team(team_file)
+	fplmanagers = mongo.db.fplmanagers
+	ffcteams = mongo.db.ffcteams
+	fplcodes = ffcteams.find_one({'team': team_name})['codes']
 	player_names = []
-	for (key, value) in ffc_team.items():
-		player_names.append(value[0])
+	for code in fplcodes:
+		player_names.append(fplmanagers.find_one({'code': str(code)})['name'])
 	return player_names
 
 def read_in_team(filename):
@@ -55,29 +56,6 @@ def read_in_team(filename):
 	target.close()
 	return team_name, player_code_table
 
-def print_team(player_code_table):
-	for player, pid in player_code_table.items():
-		print('{} : {}'.format(player, pid[0]))
-
-def soupify(url):
-	htmltext = requests.get(url)
-	data = htmltext.json()
-	return data
-
-pdata = soupify(all_data_url)
-
-player_dir = {}
-for player in pdata['elements']:
-	player_dir[player['id']] = player['web_name'] #, get_team(player['team']))
-
-team_dir = {}
-for team in pdata['teams']:
-	team_dir[team['id']] = team['short_name']
-
-player_team_dir = {}
-for player in pdata['elements']:
-	player_team_dir[player['id']] = team_dir[player['team']]
-
 def generate_fix_dir(gw):
 	live_url = "https://fantasy.premierleague.com/drf/event/%d/live" % (gw)	
 	fixture_dir = {}
@@ -89,43 +67,47 @@ def generate_fix_dir(gw):
 def get_team(team_id):
 	return team_dir[team_id]
 
-def get_current_team(code, fixture_dir, include_fpl_captain_twice = False, exclude = False):
+def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False):
 	gw = get_current_gw()
-	entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (code, gw)
-	live_url = "https://fantasy.premierleague.com/drf/event/%d/live" % (gw)
-	data = soupify(entry_url)
-	live = soupify(live_url)
 	current_team, bench, teamcount = [], [], []
-	for pick in data['picks']:
-		teamcount.append(player_team_dir[pick['element']])
+	ffcpicks = mongo.db.ffcpicks
+	picks = ffcpicks.find_one({'code': fplcode})
+	eplplayers = mongo.db.eplplayers
+	livepoints = mongo.db.livepoints
+	gwfixtures = mongo.db.gwfixtures
+	for pick in picks['playing']:
 		if exclude:
-			player_id = str(pick['element'])
-			fixture_id = live['elements'][player_id]['explain'][0][1]
-			if fixture_dir[fixture_id]:
+			fixid = livepoints.find_one({'id': str(pick)})['fixture']
+			if gwfixtures.find_one({'id': fixid})['started']:
 				continue
-		if pick['position'] >= 12: bench.append(player_dir[pick['element']])
-		else: current_team.append(player_dir[pick['element']])
-		if pick['is_captain'] and include_fpl_captain_twice:
-			current_team.append(player_dir[pick['element']])
-			if data['active_chip'] == "3xc":
-				current_team.append(player_dir[pick['element']])
-	if data['active_chip'] == "bboost":
+		current_team.append(eplplayers.find_one({'id': str(pick)})['name'])
+		teamcount.append(eplplayers.find_one({'id': str(pick)})['team'])
+		if pick == picks['captain'] and include_fpl_captain_twice:
+			current_team.append(eplplayers.find_one({'id': str(pick)})['name'])
+			if picks['chip'] == "3xc":
+				current_team.append(eplplayers.find_one({'id': str(pick)})['name'])
+	for pick in picks['bench']:
+		if exclude:
+			fixid = livepoints.find_one({'id': str(pick)})['fixture']
+			if gwfixtures.find_one({'id': fixid})['started']:
+				continue
+		bench.append(eplplayers.find_one({'id': str(pick)})['name'])
+		teamcount.append(eplplayers.find_one({'id': str(pick)})['team'])
+	if picks['chip'] == "bboost":
 		current_team += bench
 	return current_team, bench, teamcount
 
-def get_ffcteamdetails(team_file, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False, team_count = False):
+def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False, team_count = False):
 	team_details, team_count_details = [], []
-	team_file = os.path.join(team_folder,team_file)
-	team_name, ffc_team = read_in_team(team_file)
-	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
+	ffcteams = mongo.db.ffcteams
+	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
 	gw = get_current_gw()
-	fixture_dir = generate_fix_dir(gw)
 	if ffc_bench != -1 and ffc_captain != -1:
 		fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
 	elif ffc_captain != -1: fpl_codes.append(fpl_codes[ffc_captain])
 	elif ffc_bench != -1: del fpl_codes[ffc_bench]
-	for code in fpl_codes:
-		current, bench, teamcount = get_current_team(code, fixture_dir, include_fpl_captain_twice, exclude)
+	for fcode in fpl_codes:
+		current, bench, teamcount = get_current_team(fcode, include_fpl_captain_twice, exclude)
 		team_details.append(current)
 		team_count_details.append(teamcount)
 		if include_fpl_bench:
@@ -165,23 +147,23 @@ def get_live_points(entry_code, gw):
     live_score = gw_score - transfer_cost
     return live_score
 
-def team_scoreboard(filename, gw = -1):
+def team_scoreboard(team_name, gw = -1):
 	if gw == -1: gw = get_current_gw()
-	team_file = os.path.join(team_folder,filename)
-	team_name, ffc_team = read_in_team(team_file)
-	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
+	ffcpicks = mongo.db.ffcpicks
+	fplmanagers = mongo.db.fplmanagers
+	ffcteams = mongo.db.ffcteams
+	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
 	scores = []
 	points, transfer_costs = [], []
 	player_urls = []
-	for code in fpl_codes:
-		entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (code, gw)
-		fpl_url = "https://fantasy.premierleague.com/a/team/%d/event/%d" % (code, gw)
+	for fcode in fpl_codes:
+		entry = ffcpicks.find_one({'code': fcode})
+		fpl_url = "https://fantasy.premierleague.com/a/team/%d/event/%d" % (fcode, gw)
 		player_urls.append(fpl_url)
-		data = soupify(entry_url)
-		points.append(data['entry_history']['points'])
-		transfer_costs.append(data['entry_history']['event_transfers_cost'])
-		scores.append(data['entry_history']['points'] - data['entry_history']['event_transfers_cost'])
-	player_names = [item[0] for item in list(ffc_team.values())]
+		points.append(entry['points'])
+		transfer_costs.append(entry['cost'])
+		scores.append(entry['points'] - entry['cost'])
+	player_names = get_ffc_players(team_name)
 	table_content = list(map(list, zip(player_names, points, transfer_costs, scores, player_urls)))
 	table_content = sorted(table_content, key=lambda x: x[3], reverse=True)
 	board = []
@@ -282,7 +264,7 @@ def get_chip_usage(team_name):
 		player_history_url = "https://fantasy.premierleague.com/drf/entry/%d/history" % (code)
 		history = soupify(player_history_url)
 		for chip in history['chips']:
-			if chip['chip'] == 2: chips['w'] += 1
+			if chip['chip'] == 1: chips['w'] += 1
 			if chip['chip'] == 4: chips['t'] += 1
 			if chip['chip'] == 5: chips['b'] += 1
 			if chip['chip'] == 3: chips['a'] += 1
