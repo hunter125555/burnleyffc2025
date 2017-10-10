@@ -3,8 +3,6 @@ import json
 import argparse
 import requests
 
-from angular_flask.core import db
-from angular_flask.models import Post
 from angular_flask.core import mongo
 
 from angular_flask import app
@@ -65,7 +63,7 @@ def update_gw_fixtures():
 		gw = mongo.db.currentgw.find_one()['gw']
 		live_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % gw
 		live_data = soupify(live_url)
-		gwfixtures.insert_many({'id': str(fix['id']), 'started': fix['started']} for fix in live_data['fixtures'])
+		gwfixtures.insert_many({'id': str(fix['id']), 'started': fix['started'], 'home': fix['team_h'], 'away': fix['team_a']} for fix in live_data['fixtures'])
 
 def update_live_points():
 	with app.app_context():
@@ -103,7 +101,6 @@ def update_ffc_picks():
 					else:
 						playing.append(pick['element'])
 				ffcpicks.insert_one({'code': code, 'points': points, 'captain': captain, 'vicecaptain': vicecaptain, 'chip': chip, 'cost': transcost, 'playing': playing, 'bench': bench})
-				#import code; code.interact(local=locals())
 
 # def update_ffc_captains():
 
@@ -139,6 +136,12 @@ def main():
 	elif args.command == 'update_ffc_picks':
 		update_ffc_picks()
 		print "FFC picks added!"
+	elif args.command == 'update_for_gw':
+		update_current_gw()
+		update_gw_fixtures()
+		update_live_points()
+		update_ffc_picks()
+		print "Update for GW complete!"
 	else:
 		raise Exception('Invalid command')
 

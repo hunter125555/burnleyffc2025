@@ -1,12 +1,8 @@
 import requests
 import json
-import urllib
 import os
 from collections import Counter, OrderedDict
-import csv
-import sys
 import math
-import operator
 
 from angular_flask.core import mongo
 
@@ -18,13 +14,13 @@ flatten = lambda l: [item for sublist in l for item in sublist]
 order_dict = lambda d: OrderedDict(sorted(d.items(), key = lambda x: x[1], reverse=True))
 
 def standard_deviation(lst):
-    num_items = len(lst)
-    mean = sum(lst) / num_items
-    differences = [x - mean for x in lst]
-    sq_differences = [d ** 2 for d in differences]
-    ssd = sum(sq_differences)
-    variance = float(ssd) / float(num_items)
-    return math.sqrt(variance)
+	num_items = len(lst)
+	mean = sum(lst) / num_items
+	differences = [x - mean for x in lst]
+	sq_differences = [d ** 2 for d in differences]
+	ssd = sum(sq_differences)
+	variance = float(ssd) / float(num_items)
+	return math.sqrt(variance)
 
 def get_current_gw():
 	return mongo.db.currentgw.find_one()['gw']
@@ -55,17 +51,6 @@ def read_in_team(filename):
 			player_no+=1
 	target.close()
 	return team_name, player_code_table
-
-def generate_fix_dir(gw):
-	live_url = "https://fantasy.premierleague.com/drf/event/%d/live" % (gw)	
-	fixture_dir = {}
-	live = soupify(live_url)
-	for obj in live['fixtures']:
-		fixture_dir[obj['id']] = obj['started']
-	return fixture_dir
-
-def get_team(team_id):
-	return team_dir[team_id]
 
 def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False):
 	gw = get_current_gw()
@@ -100,6 +85,7 @@ def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False
 def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False, team_count = False):
 	team_details, team_count_details = [], []
 	ffcteams = mongo.db.ffcteams
+	eplteams = mongo.db.eplteams
 	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
 	gw = get_current_gw()
 	if ffc_bench != -1 and ffc_captain != -1:
@@ -118,10 +104,15 @@ def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_
 	if team_count:
 		team_count_details = flatten(team_count_details)
 		total_team_count = dict(Counter(team_count_details))
-		total_team_count_sorted = order_dict(total_team_count)
+		total_teamname_count = {}
+		for k, v in total_team_count.items():
+			name = eplteams.find_one({'id': k})['short']
+			total_teamname_count[name] = v
+		total_team_count_sorted = order_dict(total_teamname_count)
 		final_dict = OrderedDict()
 		for k, v in total_player_count_sorted.items() + total_team_count_sorted.items():
 			final_dict[k] = v
+		import code; code.interact(local=locals())
 		return final_dict
 	else:
 		return total_player_count_sorted
@@ -132,20 +123,24 @@ def get_differentials(t1,t2):
 	diff_sorted = order_dict(diff)
 	return diff_sorted
 
-def get_live_points(entry_code, gw):
-    gw_url = "https://fantasy.premierleague.com/drf/event/{}/live".format(gw)
-    gw_data = soupify(gw_url)
-    entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks" % (entry_code, gw)
-    data = soupify(entry_url)
-    gw_score = 0
-    is_benchboost = (data['active_chip'] == 'bboost')
-    for pick in data['picks']:
-        pick_id = str(pick['element'])
-        if is_benchboost or pick['position'] < 12:
-            gw_score += (gw_data['elements'][pick_id]['stats']['total_points'] * pick['multiplier'])
-    transfer_cost = data['entry_history']['event_transfers_cost']
-    live_score = gw_score - transfer_cost
-    return live_score
+def get_live_points(entry_code):
+	gw_score = 0
+	ffcpicks = mongo.db.ffcpicks
+	livepoints = mongo.db.livepoints
+	picks = ffcpicks.find_one({'code': entry_code})
+	if picks['chip'] == 'bboost':
+		picks['playing'] += picks['bench']
+	cap = picks['captain']
+	for pick in picks['playing']:
+		points = livepoints.find_one({'id': str(pick)})['points']
+		gw_score += points
+		if picks['chip'] == '3xc':
+			gw_score += points * 2
+		elif pick == cap:
+			gw_score += points
+	transfer_cost = picks['cost']
+	live_score = gw_score - transfer_cost
+	return live_score
 
 def team_scoreboard(team_name, gw = -1):
 	if gw == -1: gw = get_current_gw()
@@ -178,13 +173,11 @@ def team_scoreboard(team_name, gw = -1):
 		board.append(item)
 	return board
 
-def get_scores(filename, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
+def get_scores(team_name, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 	total = 0
 	scores = []
-	gw = get_current_gw()
-	team_file = os.path.join(team_folder,filename)
-	team_name, ffc_team = read_in_team(team_file)
-	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
+	ffcteams = mongo.db.ffcteams
+	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
 	if ffc_bench != -1 and ffc_captain != -1:
 		fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
 	elif ffc_captain != -1: 
@@ -192,10 +185,10 @@ def get_scores(filename, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 	else:
 		del fpl_codes[ffc_bench]
 	for code in fpl_codes:
-		scores.append(get_live_points(code, gw))
+		scores.append(get_live_points(code))
 	total = sum(scores)
 	if home_advtg:
-		total += math.ceil(0.25*max(scores))
+		total += math.floor(0.25*max(scores))
 	return total
 
 def get_capatain_scores(filename):
@@ -273,7 +266,6 @@ def get_chip_usage(team_name):
 def get_ffc_hof(gw):
 	listScores = []
 	for team in teamList:
-		team = team.lower() + ".txt"
 		board = team_scoreboard(team, int(gw))
 		for row in board:
 			listScores.append((row['Player'], row['Score'], row['Link'], team))
