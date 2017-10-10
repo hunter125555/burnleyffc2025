@@ -1,7 +1,9 @@
 # FPL_FFC
-Designing dashboard for up to date analytics on FPL and FFC.
+Designing dashboard for up to date analytics on Fantasy Premier League and Fantasy Football Championship.
 
 Angular + Flask template forked from: https://github.com/shea256/angular-flask
+
+Includes RESTful API built with Flask on top of mongodb.
 
 To Run:
 
