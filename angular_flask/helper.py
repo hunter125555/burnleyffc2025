@@ -6,7 +6,7 @@ import math
 
 from angular_flask.core import mongo
 
-teamList = ['Arsenal', 'Brighton and Hove Albion', 'Bournemouth', 'Burnley', 'Chelsea', 'Crystal Palace', 'Everton', 'Huddersfield Town', 'Leicester', 'Liverpool', 'Manchester City',	'Manchester United', 'Newcastle United', 'Southampton', 'Stoke', 'Swansea', 'Tottenham Hotspur', 'Watford', 'West Brom', 'West Ham']
+teamList = ['Arsenal', 'Brighton', 'Bournemouth', 'Burnley', 'Chelsea', 'Crystal Palace', 'Everton', 'Huddersfield', 'Leicester', 'Liverpool', 'Man City',  'Man Utd', 'Newcastle', 'Southampton', 'Stoke', 'Swansea', 'Spurs', 'Watford', 'West Brom', 'West Ham']
 team_folder = os.path.join(os.getcwd(),'teams')
 all_data_url = 'https://fantasy.premierleague.com/drf/bootstrap-static'
 dynamic_url = 'https://fantasy.premierleague.com/drf/bootstrap-dynamic'

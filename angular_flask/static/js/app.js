@@ -35,16 +35,13 @@ angular.module('AngularFlask', ['angularFlaskServices', 'smart-table'])
 			templateUrl: '../static/partials/hall.html',
 			controller: HallController
 		})
-		/* Create a "/blog" route that takes the user to the same place as "/post" */
-		.when('/blog', {
-			templateUrl: '../static/partials/post-list.html',
-			controller: PostListController
+		.when('/livefixtures', {
+			templateUrl: '../static/partials/fixtures.html',
+			controller: FixController
 		})
 		.otherwise({
 			redirectTo: '/'
-		})
-		;
-
+		});
 		$locationProvider.html5Mode(true);
 	}])
 ;

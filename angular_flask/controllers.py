@@ -100,13 +100,17 @@ def get_tie_scorecards():
 	scores.append(teamB_score)
 	return json.dumps(scores)
 
+@app.route('/livefixtures')
+def get_all_fixtures_score():
+	return
+
 @app.route('/')
 @app.route('/tie')
-@app.route('/blog')
 @app.route('/scorecard')
 @app.route('/diff')
 @app.route('/player-count')
 @app.route('/halloffame')
+@app.route('/livefixtures')
 def basic_pages(**kwargs):
 	return make_response(open('angular_flask/templates/index.html').read())
 
