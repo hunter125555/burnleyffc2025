@@ -15,10 +15,6 @@ angular.module('AngularFlask', ['angularFlaskServices', 'smart-table'])
 			templateUrl: '../static/partials/tie.html',
 			controller: TieController
 		})
-		.when('/post', {
-			templateUrl: '../static/partials/post-list.html',
-			controller: PostListController
-		})
 		.when('/scorecard', {
 			templateUrl: '../static/partials/scoreboard.html',
 			controller: ScoreBoardController

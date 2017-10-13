@@ -25,6 +25,7 @@ def update_current_gw():
 		eid = currentgw.find_one()['_id']
 		gw = static_data['current-event']
 		currentgw.find_one_and_update({'_id': eid}, {'$set': {'gw': gw}})
+		print 'Updated GW!'
 
 def update_epl_teams():
 	with app.app_context():
@@ -39,6 +40,7 @@ def update_epl_players():
 def update_fpl_managers():
 	with app.app_context():
 		fplmanagers = mongo.db.fplmanagers
+		fplmanagers.delete_many({})
 		for team in teamList:
 			team = team.lower() + ".txt"
 			team_file = os.path.join(team_folder, team)
@@ -49,6 +51,7 @@ def update_fpl_managers():
 def update_ffcteams():
 	with app.app_context():
 		ffcteams = mongo.db.ffcteams
+		ffcteams.delete_many({})
 		for team in teamList:
 			teamfile= team.lower() + ".txt"
 			team_file = os.path.join(team_folder, teamfile)
@@ -67,12 +70,14 @@ def update_gw_fixtures():
 
 def update_live_points():
 	with app.app_context():
+		print 'Updating!'
 		livepoints = mongo.db.livepoints
 		livepoints.delete_many({})
 		gw = mongo.db.currentgw.find_one()['gw']
 		live_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % gw
 		live_data = soupify(live_url)['elements']
 		livepoints.insert_many({'id': str(player[0]), 'fixture': player[1]['explain'][0][1], 'points': player[1]['stats']['total_points']} for player in live_data.items())
+		print 'Updated!'
 
 def update_ffc_picks():
 	with app.app_context():
@@ -101,9 +106,19 @@ def update_ffc_picks():
 					else:
 						playing.append(pick['element'])
 				ffcpicks.insert_one({'code': code, 'points': points, 'captain': captain, 'vicecaptain': vicecaptain, 'chip': chip, 'cost': transcost, 'playing': playing, 'bench': bench})
+ 
+def update_ffc_captains():
+	with app.app_context():
+		ffccaptains = mongo.db.ffccaptains
+		capCodes = [2447194, 264776, 121748, 613856, 718230, 81684, 861138, 715890, 20074, 303886, 480417, 1783450, 1155448, 641656, 234593, 668092, 541178, 44187, 469030, 514199]
+		for team, capcode in zip(teamList, capCodes):
+			ffccaptains.insert_one({'team': team, 'captain': capcode})
 
-# def update_ffc_captains():
-
+def update_for_gw():
+	update_current_gw()
+	update_gw_fixtures()
+	update_live_points()
+	update_ffc_picks()
 
 def main():
 	parser = argparse.ArgumentParser(
@@ -136,11 +151,11 @@ def main():
 	elif args.command == 'update_ffc_picks':
 		update_ffc_picks()
 		print "FFC picks added!"
+	elif args.command == 'update_ffc_captains':
+		update_ffc_captains()
+		print "FFC captains added!"
 	elif args.command == 'update_for_gw':
-		update_current_gw()
-		update_gw_fixtures()
-		update_live_points()
-		update_ffc_picks()
+		update_for_gw()
 		print "Update for GW complete!"
 	else:
 		raise Exception('Invalid command')

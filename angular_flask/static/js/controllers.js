@@ -7,8 +7,21 @@ function IndexController($scope, $rootScope) {
 	
 }
 
-function FixController($scope, $rootScope) {
-	
+function FixController($scope, $rootScope, $http) {
+	$scope.board = [];
+	$scope.displayTable = false;
+	$scope.loadFixtures = function(){
+		$scope.showLabel = true;
+		$http.get("/fixtures").
+			then(function(response) {
+				$scope.displayTable = true;
+				$scope.showLabel = false;
+				$scope.board = response.data;
+		}, function(error){
+			console.log(error);
+		});
+	}
+	$scope.loadFixtures();
 }
 
 function ScoreBoardController($scope, $rootScope, $http) {

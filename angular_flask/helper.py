@@ -131,13 +131,16 @@ def get_live_points(entry_code):
 	if picks['chip'] == 'bboost':
 		picks['playing'] += picks['bench']
 	cap = picks['captain']
+	pickpoints = []
 	for pick in picks['playing']:
 		points = livepoints.find_one({'id': str(pick)})['points']
-		gw_score += points
-		if picks['chip'] == '3xc':
-			gw_score += points * 2
+		pickpoints.append(points)
+		if picks['chip'] == '3xc' and pick == cap:
+			pickpoints.append(points)
+			pickpoints.append(points)
 		elif pick == cap:
-			gw_score += points
+			pickpoints.append(points)
+	gw_score = sum(pickpoints)
 	transfer_cost = picks['cost']
 	live_score = gw_score - transfer_cost
 	return live_score
@@ -178,18 +181,24 @@ def get_scores(team_name, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 	scores = []
 	ffcteams = mongo.db.ffcteams
 	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
-	if ffc_bench != -1 and ffc_captain != -1:
-		fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
-	elif ffc_captain != -1: 
-		fpl_codes.append(fpl_codes[ffc_captain])
+	if ffc_captain == -1:
+		ffccaptains = mongo.db.ffccaptains
+		ffc_captain = ffccaptains.find_one({'team': team_name})['captain']
+		if ffc_bench != -1:
+			fpl_codes[ffc_bench] = ffc_captain
+		else:
+			fpl_codes.append(ffc_captain)
 	else:
-		del fpl_codes[ffc_bench]
-	for code in fpl_codes:
-		scores.append(get_live_points(code))
+		if ffc_bench != -1:
+			fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
+		else:
+			fpl_codes.append(fpl_codes[ffc_captain])
+	for fcode in fpl_codes:
+		scores.append(get_live_points(fcode))
 	total = sum(scores)
 	if home_advtg:
 		total += math.floor(0.25*max(scores))
-	return total
+	return int(total)
 
 def get_capatain_scores(filename):
 	teamcapscores = []

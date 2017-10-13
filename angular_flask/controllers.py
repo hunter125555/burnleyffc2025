@@ -89,9 +89,23 @@ def get_tie_scorecards():
 	scores.append(teamB_score)
 	return json.dumps(scores)
 
-@app.route('/livefixtures')
+@app.route('/fixtures')
 def get_all_fixtures_score():
-	return
+	livefixtures = []
+	gwfixtures = mongo.db.gwfixtures
+	eplteams = mongo.db.eplteams
+	fixtures = gwfixtures.find({})
+	for fix in fixtures:
+		home = fix['home']
+		away = fix['away']
+		started = fix['started']
+		if started:
+			homeTeam = eplteams.find_one({'id': home})['name']
+			awayTeam = eplteams.find_one({'id': away})['name']
+			homeTeamScore = helper.get_scores(homeTeam, ffc_captain = -1, ffc_bench = -1, home_advtg = True)
+			awayTeamScore = helper.get_scores(awayTeam, ffc_captain = -1, ffc_bench = -1, home_advtg = False)
+			livefixtures.append([(homeTeam, homeTeamScore), (awayTeam, awayTeamScore)])
+	return json.dumps(livefixtures)
 
 @app.route('/')
 @app.route('/tie')

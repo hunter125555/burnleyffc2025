@@ -1,22 +1,16 @@
-<ul class="matchList ism-match-list">
-    <li class="ism-match-list__heading">
-        <time datetime="2017-09-30">Saturday 30 September</time>
-    </li>
-    <li class="ism-fixture-result">
-        <div class="fixture">
-            <span class="overview ism-overview">
-                <span class="teams ism-teams">
-                    <span class="team">
-                        <span class="teamName">Huddersfield</span>
-                    </span>
-
-                    <span class="score">0 <span>-</span> 4</span>
-
-                    <span class="team">
-                        <span class="teamName">Spurs</span>
-                    </span>
-                </span>
-            </span>
-        </div>
-    </li>
-</ul>
+<button ng-click="loadFixtures()">Generate Live Fixture Scores</button>
+<label ng-show = "showLabel">Calculating Live Fixture Scores...hang around!</label>
+<table st-table = "board" class = "table table-striped">
+    <tr>
+        <th>Team</th>
+        <th>Score</th>
+        <th>Score</th>
+        <th>Team</th>
+    </tr>       
+    <tr ng-show = "displayTable" ng-repeat="entry in board">
+        <td>{{ entry[0][0] }}</td>
+        <td>{{ entry[0][1] }}</td>
+        <td>{{ entry[1][1] }}</td>
+        <td>{{ entry[1][0] }}</td>
+    </tr>
+</table>
