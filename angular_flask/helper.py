@@ -63,7 +63,7 @@ def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False
 	for pick in picks['playing']:
 		if exclude:
 			fixid = livepoints.find_one({'id': str(pick)})['fixture']
-			if gwfixtures.find_one({'id': fixid})['started']:
+			if gwfixtures.find_one({'id': str(fixid)})['started']:
 				continue
 		current_team.append(eplplayers.find_one({'id': str(pick)})['name'])
 		teamcount.append(eplplayers.find_one({'id': str(pick)})['team'])
@@ -74,7 +74,7 @@ def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False
 	for pick in picks['bench']:
 		if exclude:
 			fixid = livepoints.find_one({'id': str(pick)})['fixture']
-			if gwfixtures.find_one({'id': fixid})['started']:
+			if gwfixtures.find_one({'id': str(fixid)})['started']:
 				continue
 		bench.append(eplplayers.find_one({'id': str(pick)})['name'])
 		teamcount.append(eplplayers.find_one({'id': str(pick)})['team'])
@@ -82,24 +82,22 @@ def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False
 		current_team += bench
 	return current_team, bench, teamcount
 
-def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False, team_count = False):
+def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False, team_count = False, consider_ffc_bench = False):
 	team_details, team_count_details = [], []
 	ffcteams = mongo.db.ffcteams
 	eplteams = mongo.db.eplteams
 	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
-	gw = get_current_gw() 
-	if ffc_captain == -1:
-		ffccaptains = mongo.db.ffccaptains
-		ffc_captain = ffccaptains.find_one({'team': team_name})['captain']
+	gw = get_current_gw()
+	ffccaptains = mongo.db.ffccaptains
+	ffcbench = mongo.db.ffcbench
+	ffc_captain = ffccaptains.find_one({'team': team_name})['captain']
+	fpl_codes.append(ffc_captain)
+	if consider_ffc_bench:
 		if ffc_bench != -1:
-			fpl_codes[ffc_bench] = ffc_captain
+			del fpl_codes[ffc_bench]
 		else:
-			fpl_codes.append(ffc_captain)
-	else:
-		if ffc_bench != -1:
-			fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
-		else:
-			fpl_codes.append(fpl_codes[ffc_captain])
+			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
+			del fpl_codes[fpl_codes.index(ffc_bench)]
 	for fcode in fpl_codes:
 		current, bench, teamcount = get_current_team(fcode, include_fpl_captain_twice, exclude)
 		team_details.append(current)
@@ -120,7 +118,6 @@ def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_
 		final_dict = OrderedDict()
 		for k, v in total_player_count_sorted.items() + total_team_count_sorted.items():
 			final_dict[k] = v
-		import code; code.interact(local=locals())
 		return final_dict
 	else:
 		return total_player_count_sorted
@@ -153,7 +150,7 @@ def get_live_points(entry_code):
 	live_score = gw_score - transfer_cost
 	return live_score
 
-def team_scoreboard(team_name, gw = -1):
+def team_scoreboard(team_name, hof = False, gw = -1):
 	if gw == -1: gw = get_current_gw()
 	ffcpicks = mongo.db.ffcpicks
 	fplmanagers = mongo.db.fplmanagers
@@ -166,7 +163,10 @@ def team_scoreboard(team_name, gw = -1):
 		entry = ffcpicks.find_one({'code': fcode})
 		fpl_url = "https://fantasy.premierleague.com/a/team/%d/event/%d" % (fcode, gw)
 		player_urls.append(fpl_url)
-		pts = get_live_points(fcode)
+		if not hof:
+			pts = get_live_points(fcode)
+		else:
+			pts = entry['points']
 		points.append(pts)
 		transfer_costs.append(entry['cost'])
 		scores.append(pts - entry['cost'])
@@ -185,29 +185,20 @@ def team_scoreboard(team_name, gw = -1):
 		board.append(item)
 	return board
 
-def get_scores(team_name, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
+def get_scores(team_name, ffc_bench = -1, home_advtg = False):
 	total = 0
 	scores = []
 	ffcteams = mongo.db.ffcteams
 	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
-	if ffc_captain == -1:
-		ffccaptains = mongo.db.ffccaptains
-		ffc_captain = ffccaptains.find_one({'team': team_name})['captain']
-		if ffc_bench != -1:
-			fpl_codes[ffc_bench] = ffc_captain
-		else:
-			ffcbench = mongo.db.ffcbench
-			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
-			i = fpl_codes.index(ffc_bench)
-			fpl_codes[i] = ffc_captain
+	ffccaptains = mongo.db.ffccaptains
+	ffc_captain = ffccaptains.find_one({'team': team_name})['captain']
+	if ffc_bench != -1:
+		fpl_codes[ffc_bench] = ffc_captain
 	else:
-		if ffc_bench != -1:
-			fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
-		else:
-			ffcbench = mongo.db.ffcbench
-			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
-			i = fpl_codes.index(ffc_bench)
-			fpl_codes[i] = fpl_codes[ffc_captain]
+		ffcbench = mongo.db.ffcbench
+		ffc_bench = ffcbench.find_one({'team': team_name})['bench']
+		i = fpl_codes.index(ffc_bench)
+		fpl_codes[i] = ffc_captain
 	for fcode in fpl_codes:
 		scores.append(get_live_points(fcode))
 	total = sum(scores)
@@ -290,7 +281,7 @@ def get_chip_usage(team_name):
 def get_ffc_hof(gw):
 	listScores = []
 	for team in teamList:
-		board = team_scoreboard(team, int(gw))
+		board = team_scoreboard(team, hof=True, int(gw))
 		for row in board:
 			listScores.append((row['Player'], row['Score'], row['Link'], team))
 	hof = sorted(listScores, key=lambda x:x[1], reverse=True)

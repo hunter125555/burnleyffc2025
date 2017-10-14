@@ -47,6 +47,7 @@ def get_differentials():
 	bench = True if request.args.get('bench') == "yes" else False
 	captain = True if request.args.get('captain') == "yes" else False
 	exclude = True if request.args.get('exclude') == "yes" else False
+	ffcBench = True if request.args.get('ffcBench') == "yes" else False
 	teamA = request.args.get('teamA')
 	teamB = request.args.get('teamB')
 	captainA = request.args.get('captainA')
@@ -57,8 +58,8 @@ def get_differentials():
 	ffc_benchA = int(benchA) if benchA != 'null' else -1
 	ffc_captainB = int(captainB) if captainB != 'null' else -1
 	ffc_benchB = int(benchB) if benchB != 'null' else -1
-	teamA_counts = helper.get_ffcteamdetails(teamA, ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude)
-	teamB_counts = helper.get_ffcteamdetails(teamB, ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude)
+	teamA_counts = helper.get_ffcteamdetails(teamA, ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude, consider_ffc_bench=ffcBench)
+	teamB_counts = helper.get_ffcteamdetails(teamB, ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, include_fpl_captain_twice = captain, include_fpl_bench=bench, exclude = exclude, consider_ffc_bench=ffcBench)
 	return json.dumps(helper.get_differentials(teamA_counts, teamB_counts).items(), sort_keys = False)
 
 @app.route('/count', methods = ['GET'])
@@ -70,18 +71,14 @@ def get_player_count():
 def get_tie_scorecards():
 	teamA = request.args.get('teamA')
 	teamB = request.args.get('teamB')
-	captainA = request.args.get('captainA')
-	captainB = request.args.get('captainB')
 	benchA = request.args.get('benchA')
 	benchB = request.args.get('benchB')
 	teamA_card = helper.team_scoreboard(teamA)
 	teamB_card = helper.team_scoreboard(teamB)
-	ffc_captainA = int(captainA) if captainA != 'null' else -1
 	ffc_benchA = int(benchA) if benchA != 'null' else -1
-	ffc_captainB = int(captainB) if captainB != 'null' else -1
 	ffc_benchB = int(benchB) if benchB != 'null' else -1
-	teamA_score = helper.get_scores(teamA, ffc_captain = ffc_captainA, ffc_bench = ffc_benchA, home_advtg = True)
-	teamB_score = helper.get_scores(teamB, ffc_captain = ffc_captainB, ffc_bench = ffc_benchB, home_advtg = False)
+	teamA_score = helper.get_scores(teamA, ffc_bench = ffc_benchA, home_advtg = True)
+	teamB_score = helper.get_scores(teamB, ffc_bench = ffc_benchB, home_advtg = False)
 	scores = []
 	scores.append(teamA_card)
 	scores.append(teamB_card)
@@ -101,8 +98,8 @@ def get_all_fixtures_score():
 		started = fix['started']
 		homeTeam = eplteams.find_one({'id': home})['name']
 		awayTeam = eplteams.find_one({'id': away})['name']
-		homeTeamScore = helper.get_scores(homeTeam, ffc_captain = -1, ffc_bench = -1, home_advtg = True)
-		awayTeamScore = helper.get_scores(awayTeam, ffc_captain = -1, ffc_bench = -1, home_advtg = False)
+		homeTeamScore = helper.get_scores(homeTeam, ffc_bench = -1, home_advtg = True)
+		awayTeamScore = helper.get_scores(awayTeam, ffc_bench = -1, home_advtg = False)
 		livefixtures.append([(homeTeam, homeTeamScore), (awayTeam, awayTeamScore)])
 	return json.dumps(livefixtures)
 

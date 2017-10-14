@@ -66,6 +66,7 @@ function DiffController($scope, $rootScope, $http) {
 	$scope.fplBench = "no";
 	$scope.fplCaptain = "no";
 	$scope.excludeHasPlayed = "no";
+	$scope.ffcBench = "no";
 	$scope.displaySub = false;
 	$scope.homeTeam = [];
 	$scope.awayTeam = [];
@@ -95,7 +96,7 @@ function DiffController($scope, $rootScope, $http) {
 		}
 	}
 	$scope.loadDiff = function() {
-		$http.get("/differentials?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&bench=" + $scope.fplBench + "&captain=" + $scope.fplCaptain + "&exclude=" + $scope.excludeHasPlayed +"&captainA=" + $scope.captainA + "&captainB=" + $scope.captainB  + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB).
+		$http.get("/differentials?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&bench=" + $scope.fplBench + "&captain=" + $scope.fplCaptain + "&exclude=" + $scope.excludeHasPlayed + "&ffcBench=" + $scope.ffcBench + "&captainA=" + $scope.captainA + "&captainB=" + $scope.captainB  + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB).
 			then(function(response) {
 				$scope.diff = response.data;
 				console.log(response.data);
@@ -126,8 +127,6 @@ function TieController($scope, $rootScope, $http) {
 	$scope.displaySub = false;
 	$scope.teamA = "Arsenal";
 	$scope.teamB = "Burnley";
-	$scope.captainA = null;
-	$scope.captainB = null;
 	$scope.benchA = null;
 	$scope.benchB = null;
 	$scope.homeTeam = [];
@@ -156,7 +155,7 @@ function TieController($scope, $rootScope, $http) {
 		}
 	}
 	$scope.loadBoard = function() {
-		$http.get("/tie_details?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&captainA=" + $scope.captainA + "&captainB=" + $scope.captainB  + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB).
+		$http.get("/tie_details?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB).
 			then(function(response) {
 				$scope.displayTable = true;
 				$scope.boardA = response.data[0];

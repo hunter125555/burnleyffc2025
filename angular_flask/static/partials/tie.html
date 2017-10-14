@@ -9,12 +9,6 @@
 		<button ng-disabled = "entryForm.$invalid" ng-click="loadPlayers()">Enter</button>
 	</form>
 	<form ng-show = "displaySub" name = "subForm">
-		<select ng-model="captainA" ng-options="idx*1 as player for (idx, player) in homeTeam">
-    		<option value="">Select Home Captain</option>
-		</select>
-		<select ng-model="captainB" ng-options="idx*1 as player for (idx, player) in awayTeam">
-    		<option value="">Select Away Captain</option>
-		</select>
 		<select ng-model="benchA" ng-options="idx*1 as player for (idx, player) in homeTeam">
     		<option value="">Select Home Bench</option>
 		</select>
