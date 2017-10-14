@@ -117,7 +117,7 @@ def update_ffc_captains():
 def update_ffc_bench():
 	with app.app_context():
 		ffcbench = mongo.db.ffcbench
-		benchCodes = []
+		benchCodes = [944016, 1002200, 1214, 1447559, 767012, 556122, 672855, 99293, 683730, 3383, 674118, 1788203, 773359, 80362, 147565, 540557, 886572, 948427, 9306, 765882]
 		for team, bcode in zip(teamList, benchCodes):
 			ffcbench.insert_one({'team': team, 'bench': bcode})
 
