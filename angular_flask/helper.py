@@ -87,11 +87,25 @@ def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_
 	ffcteams = mongo.db.ffcteams
 	eplteams = mongo.db.eplteams
 	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
-	gw = get_current_gw()
-	if ffc_bench != -1 and ffc_captain != -1:
-		fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
-	elif ffc_captain != -1: fpl_codes.append(fpl_codes[ffc_captain])
-	elif ffc_bench != -1: del fpl_codes[ffc_bench]
+	gw = get_current_gw() 
+	if ffc_captain == -1:
+		ffccaptains = mongo.db.ffccaptains
+		ffc_captain = ffccaptains.find_one({'team': team_name})['captain']
+		if ffc_bench != -1:
+			fpl_codes[ffc_bench] = ffc_captain
+		else:
+			ffcbench = mongo.db.ffcbench
+			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
+			i = fpl_codes.index(ffc_bench)
+			fpl_codes[i] = ffc_captain
+	else:
+		if ffc_bench != -1:
+			fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
+		else:
+			ffcbench = mongo.db.ffcbench
+			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
+			i = fpl_codes.index(ffc_bench)
+			fpl_codes[i] = fpl_codes[ffc_captain]
 	for fcode in fpl_codes:
 		current, bench, teamcount = get_current_team(fcode, include_fpl_captain_twice, exclude)
 		team_details.append(current)
@@ -187,12 +201,18 @@ def get_scores(team_name, ffc_captain = -1, ffc_bench = -1, home_advtg = False):
 		if ffc_bench != -1:
 			fpl_codes[ffc_bench] = ffc_captain
 		else:
-			fpl_codes.append(ffc_captain)
+			ffcbench = mongo.db.ffcbench
+			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
+			i = fpl_codes.index(ffc_bench)
+			fpl_codes[i] = ffc_captain
 	else:
 		if ffc_bench != -1:
 			fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
 		else:
-			fpl_codes.append(fpl_codes[ffc_captain])
+			ffcbench = mongo.db.ffcbench
+			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
+			i = fpl_codes.index(ffc_bench)
+			fpl_codes[i] = fpl_codes[ffc_captain]
 	for fcode in fpl_codes:
 		scores.append(get_live_points(fcode))
 	total = sum(scores)

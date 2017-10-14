@@ -114,6 +114,13 @@ def update_ffc_captains():
 		for team, capcode in zip(teamList, capCodes):
 			ffccaptains.insert_one({'team': team, 'captain': capcode})
 
+def update_ffc_bench():
+	with app.app_context():
+		ffcbench = mongo.db.ffcbench
+		benchCodes = []
+		for team, bcode in zip(teamList, benchCodes):
+			ffcbench.insert_one({'team': team, 'bench': bcode})
+
 def update_for_gw():
 	update_current_gw()
 	update_gw_fixtures()
@@ -154,6 +161,9 @@ def main():
 	elif args.command == 'update_ffc_captains':
 		update_ffc_captains()
 		print "FFC captains added!"
+	elif args.command == 'update_ffc_bench':
+		update_ffc_bench()
+		print "FFC bench updated!"
 	elif args.command == 'update_for_gw':
 		update_for_gw()
 		print "Update for GW complete!"
