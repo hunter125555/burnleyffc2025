@@ -94,18 +94,12 @@ def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_
 		if ffc_bench != -1:
 			fpl_codes[ffc_bench] = ffc_captain
 		else:
-			ffcbench = mongo.db.ffcbench
-			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
-			i = fpl_codes.index(ffc_bench)
-			fpl_codes[i] = ffc_captain
+			fpl_codes.append(ffc_captain)
 	else:
 		if ffc_bench != -1:
 			fpl_codes[ffc_bench] = fpl_codes[ffc_captain]
 		else:
-			ffcbench = mongo.db.ffcbench
-			ffc_bench = ffcbench.find_one({'team': team_name})['bench']
-			i = fpl_codes.index(ffc_bench)
-			fpl_codes[i] = fpl_codes[ffc_captain]
+			fpl_codes.append(fpl_codes[ffc_captain])
 	for fcode in fpl_codes:
 		current, bench, teamcount = get_current_team(fcode, include_fpl_captain_twice, exclude)
 		team_details.append(current)
