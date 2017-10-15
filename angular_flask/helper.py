@@ -281,7 +281,7 @@ def get_chip_usage(team_name):
 def get_ffc_hof(gw):
 	listScores = []
 	for team in teamList:
-		board = team_scoreboard(team, hof=True, int(gw))
+		board = team_scoreboard(team, int(gw), hof=True)
 		for row in board:
 			listScores.append((row['Player'], row['Score'], row['Link'], team))
 	hof = sorted(listScores, key=lambda x:x[1], reverse=True)
