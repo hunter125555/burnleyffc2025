@@ -150,7 +150,7 @@ def get_live_points(entry_code):
 	live_score = gw_score - transfer_cost
 	return live_score
 
-def team_scoreboard(team_name, hof = False, gw = -1):
+def team_scoreboard(team_name, gw = -1, hof = False):
 	if gw == -1: gw = get_current_gw()
 	ffcpicks = mongo.db.ffcpicks
 	fplmanagers = mongo.db.fplmanagers
@@ -166,13 +166,13 @@ def team_scoreboard(team_name, hof = False, gw = -1):
 		if not hof:
 			pts = get_live_points(fcode)
 		else:
-			pts = entry['points']
+			pts = entry['points'] - entry['cost']
 		points.append(pts)
 		transfer_costs.append(entry['cost'])
-		scores.append(pts - entry['cost'])
+		scores.append(pts + entry['cost'])
 	player_names = get_ffc_players(team_name)
 	table_content = list(map(list, zip(player_names, points, transfer_costs, scores, player_urls)))
-	table_content = sorted(table_content, key=lambda x: x[3], reverse=True)
+	table_content = sorted(table_content, key=lambda x: x[1], reverse=True)
 	board = []
 	for row in table_content:
 		item = {
@@ -280,10 +280,12 @@ def get_chip_usage(team_name):
 
 def get_ffc_hof(gw):
 	listScores = []
+	eplteams = mongo.db.eplteams
 	for team in teamList:
+		shortname = eplteams.find_one({'name': team})['short']
 		board = team_scoreboard(team, int(gw), hof=True)
 		for row in board:
-			listScores.append((row['Player'], row['Score'], row['Link'], team))
+			listScores.append((row['Player'], row['Points'], row['Link'], shortname))
 	hof = sorted(listScores, key=lambda x:x[1], reverse=True)
 	hof = hof[:25]
 	board = []

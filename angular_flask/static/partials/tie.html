@@ -28,7 +28,7 @@
 		</tr>
 		<tr ng-repeat="card in boardA">
 			<td>{{ card.Player }}</td>
-			<td>{{ card.Score }}</td>
+			<td>{{ card.Points }}</td>
 		</tr>
 	</table>
 	<table style="float: right; width = 45%;" ng-show = "displayTable" st-table = "boardB" class = "table table-striped">
@@ -39,7 +39,7 @@
 		</tr>
 		<tr ng-repeat="card in boardB">
 			<td>{{ card.Player }}</td>
-			<td>{{ card.Score }}</td>
+			<td>{{ card.Points }}</td>
 		</tr>
 	</table>
 </div>
