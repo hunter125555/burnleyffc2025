@@ -1,7 +1,7 @@
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
 from manage import update_live_points, update_for_gw, update_test
 
-sched = BackgroundScheduler()
+sched = BlockingScheduler()
 
 @sched.scheduled_job('interval', minutes = 1)
 def test_job():
