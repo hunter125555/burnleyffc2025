@@ -19,6 +19,13 @@ def soupify(url):
 
 static_data = soupify(static_url)
 
+def update_test():
+	with app.app_context():
+		test = mongo.db.test
+		val = test.find_one()['val']
+		test.find_one_and_update({'var': 'a'}, {'$set': {'val': val + 1}})
+
+
 def update_current_gw():
 	with app.app_context():
 		currentgw = mongo.db.currentgw
@@ -169,6 +176,9 @@ def main():
 	elif args.command == 'update_for_gw':
 		update_for_gw()
 		print "Update for GW complete!"
+	elif args.command == 'test':
+		update_test()
+		print "Test pass!"
 	else:
 		raise Exception('Invalid command')
 

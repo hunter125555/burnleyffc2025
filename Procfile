@@ -1,2 +1,2 @@
 web: gunicorn runserver:app -w 3
-clock: python runserver.py
+clock: python jobs.py
