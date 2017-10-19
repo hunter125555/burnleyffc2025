@@ -3,7 +3,7 @@ from manage import update_live_points, update_for_gw, update_test
 
 sched = BlockingScheduler()
 
-@sched.scheduled_job('cron', day_of_week='wed-sun', hour='22', minute='30-35/1', timezone='America/New_York')
+@sched.scheduled_job('cron', day_of_week='wed-sun', hour='23', minute='38-43/1', timezone='America/New_York')
 def test_job():
 	update_test()
 
