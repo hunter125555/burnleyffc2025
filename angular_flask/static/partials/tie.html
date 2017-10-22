@@ -6,6 +6,13 @@
 		<select ng-model="teamB" ng-options="team for team in teamList" required>
     		<option value="">Select Away Team</option>
 		</select>
+		<label> Consider Live Scores? : </label>
+        <label>
+            <input type="radio" ng-model="live" value="yes"/>Yes
+        </label>
+        <label>
+            <input type="radio" ng-model="live" value="no"/>No
+        </label>
 		<button ng-disabled = "entryForm.$invalid" ng-click="loadPlayers()">Enter</button>
 	</form>
 	<form ng-show = "displaySub" name = "subForm">

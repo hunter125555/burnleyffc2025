@@ -1,4 +1,13 @@
-<button ng-click="loadFixtures()">Generate Live Fixture Scores</button>
+<form name = "entryForm">
+        <label> Consider Live Scores? : </label>
+        <label>
+            <input type="radio" ng-model="live" value="yes"/>Yes
+        </label>
+        <label>
+            <input type="radio" ng-model="live" value="no"/>No
+        </label>
+        <button ng-disabled = "entryForm.$invalid" ng-click="loadFixtures()">Generate Live Fixture Scores</button>
+</form>
 <label ng-show = "showLabel">Calculating Live Fixture Scores...hang around!</label>
 <table st-table = "board" class = "table table-striped">
     <tr>

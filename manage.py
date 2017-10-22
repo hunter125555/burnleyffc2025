@@ -126,7 +126,7 @@ def update_ffc_bench():
 	with app.app_context():
 		ffcbench = mongo.db.ffcbench
 		ffcbench.delete_many({})
-		benchCodes = [944016, 1002200, 1214, 1447559, 767012, 556122, 672855, 99293, 683730, 3383, 674118, 1788203, 773359, 80362, 147565, 540557, 886572, 948427, 9306, 765882]
+		benchCodes = [237830, 2110726, 617980, 39154, 767012, 124928, 350414, 550340, 1371086, 210579, 65109, 970393, 157578, 80362, 636045, 121718, 155651, 130215, 7496, 663518]
 		for team, bcode in zip(teamList, benchCodes):
 			ffcbench.insert_one({'team': team, 'bench': bcode})
 

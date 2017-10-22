@@ -10,9 +10,10 @@ function IndexController($scope, $rootScope) {
 function FixController($scope, $rootScope, $http) {
 	$scope.board = [];
 	$scope.displayTable = false;
+	$scope.live = "yes";
 	$scope.loadFixtures = function(){
 		$scope.showLabel = true;
-		$http.get("/fixtures").
+		$http.get("/fixtures?live=" + $scope.live).
 			then(function(response) {
 				$scope.displayTable = true;
 				$scope.showLabel = false;
@@ -21,7 +22,6 @@ function FixController($scope, $rootScope, $http) {
 			console.log(error);
 		});
 	}
-	$scope.loadFixtures();
 }
 
 function ScoreBoardController($scope, $rootScope, $http) {
@@ -133,6 +133,7 @@ function TieController($scope, $rootScope, $http) {
 	$scope.awayTeam = [];
 	$scope.homeScore = null;
 	$scope.awayScore = null;
+	$scope.live = "yes";
 	$scope.loadPlayers = function() {
 		if ($scope.teamA === $scope.teamB) {
 			alert("Two teams cannot be the same");
@@ -155,7 +156,7 @@ function TieController($scope, $rootScope, $http) {
 		}
 	}
 	$scope.loadBoard = function() {
-		$http.get("/tie_details?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB).
+		$http.get("/tie_details?teamA=" + $scope.teamA + "&teamB=" + $scope.teamB + "&benchA=" + $scope.benchA + "&benchB=" + $scope.benchB + "&live=" + $scope.live).
 			then(function(response) {
 				$scope.displayTable = true;
 				$scope.boardA = response.data[0];

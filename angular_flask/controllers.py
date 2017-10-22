@@ -69,16 +69,17 @@ def get_player_count():
 
 @app.route('/tie_details', methods = ['GET'])
 def get_tie_scorecards():
+	live = True if request.args.get('live') == "yes" else False
 	teamA = request.args.get('teamA')
 	teamB = request.args.get('teamB')
 	benchA = request.args.get('benchA')
 	benchB = request.args.get('benchB')
-	teamA_card = helper.team_scoreboard(teamA)
-	teamB_card = helper.team_scoreboard(teamB)
+	teamA_card = helper.team_scoreboard(teamA, live)
+	teamB_card = helper.team_scoreboard(teamB, live)
 	ffc_benchA = int(benchA) if benchA != 'null' else -1
 	ffc_benchB = int(benchB) if benchB != 'null' else -1
-	teamA_score = helper.get_scores(teamA, ffc_bench = ffc_benchA, home_advtg = True)
-	teamB_score = helper.get_scores(teamB, ffc_bench = ffc_benchB, home_advtg = False)
+	teamA_score = helper.get_scores(teamA, ffc_bench = ffc_benchA, home_advtg = True, live = live)
+	teamB_score = helper.get_scores(teamB, ffc_bench = ffc_benchB, home_advtg = False, live = live)
 	scores = []
 	scores.append(teamA_card)
 	scores.append(teamB_card)
@@ -92,14 +93,15 @@ def get_all_fixtures_score():
 	gwfixtures = mongo.db.gwfixtures
 	eplteams = mongo.db.eplteams
 	fixtures = gwfixtures.find({})
+	live = True if request.args.get('live') == "yes" else False
 	for fix in fixtures:
 		home = fix['home']
 		away = fix['away']
 		started = fix['started']
 		homeTeam = eplteams.find_one({'id': home})['name']
 		awayTeam = eplteams.find_one({'id': away})['name']
-		homeTeamScore = helper.get_scores(homeTeam, ffc_bench = -1, home_advtg = True)
-		awayTeamScore = helper.get_scores(awayTeam, ffc_bench = -1, home_advtg = False)
+		homeTeamScore = helper.get_scores(homeTeam, ffc_bench = -1, home_advtg = True, live = live)
+		awayTeamScore = helper.get_scores(awayTeam, ffc_bench = -1, home_advtg = False, live = live)
 		livefixtures.append([(homeTeam, homeTeamScore), (awayTeam, awayTeamScore)])
 	return json.dumps(livefixtures)
 

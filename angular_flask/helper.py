@@ -128,11 +128,13 @@ def get_differentials(t1,t2):
 	diff_sorted = order_dict(diff)
 	return diff_sorted
 
-def get_live_points(entry_code):
+def get_live_points(entry_code, live = True):
 	gw_score = 0
 	ffcpicks = mongo.db.ffcpicks
 	livepoints = mongo.db.livepoints
 	picks = ffcpicks.find_one({'code': entry_code})
+	if not live:
+		return picks['points'] - picks['cost']
 	if picks['chip'] == 'bboost':
 		picks['playing'] += picks['bench']
 	cap = picks['captain']
@@ -150,7 +152,7 @@ def get_live_points(entry_code):
 	live_score = gw_score - transfer_cost
 	return live_score
 
-def team_scoreboard(team_name, gw = -1, hof = False):
+def team_scoreboard(team_name, gw = -1, live = True):
 	if gw == -1: gw = get_current_gw()
 	ffcpicks = mongo.db.ffcpicks
 	fplmanagers = mongo.db.fplmanagers
@@ -163,7 +165,7 @@ def team_scoreboard(team_name, gw = -1, hof = False):
 		entry = ffcpicks.find_one({'code': fcode})
 		fpl_url = "https://fantasy.premierleague.com/a/team/%d/event/%d" % (fcode, gw)
 		player_urls.append(fpl_url)
-		if not hof:
+		if live:
 			pts = get_live_points(fcode)
 		else:
 			pts = entry['points'] - entry['cost']
@@ -185,7 +187,7 @@ def team_scoreboard(team_name, gw = -1, hof = False):
 		board.append(item)
 	return board
 
-def get_scores(team_name, ffc_bench = -1, home_advtg = False):
+def get_scores(team_name, ffc_bench = -1, home_advtg = False, live = True):
 	total = 0
 	scores = []
 	ffcteams = mongo.db.ffcteams
@@ -200,7 +202,7 @@ def get_scores(team_name, ffc_bench = -1, home_advtg = False):
 		i = fpl_codes.index(ffc_bench)
 		fpl_codes[i] = ffc_captain
 	for fcode in fpl_codes:
-		scores.append(get_live_points(fcode))
+		scores.append(get_live_points(fcode, live))
 	total = sum(scores)
 	if home_advtg:
 		total += math.floor(0.25*max(scores))
@@ -283,7 +285,7 @@ def get_ffc_hof(gw):
 	eplteams = mongo.db.eplteams
 	for team in teamList:
 		shortname = eplteams.find_one({'name': team})['short']
-		board = team_scoreboard(team, int(gw), hof=True)
+		board = team_scoreboard(team, int(gw), live = False)
 		for row in board:
 			listScores.append((row['Player'], row['Points'], row['Link'], shortname))
 	hof = sorted(listScores, key=lambda x:x[1], reverse=True)
