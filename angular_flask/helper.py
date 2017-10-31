@@ -205,7 +205,7 @@ def get_scores(team_name, ffc_bench = -1, home_advtg = False, live = True):
 		scores.append(get_live_points(fcode, live))
 	total = sum(scores)
 	if home_advtg:
-		total += math.floor(0.25*max(scores))
+		total += round(0.25*max(scores))
 	return int(total)
 
 def get_capatain_scores(filename):
