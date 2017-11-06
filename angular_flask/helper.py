@@ -65,18 +65,18 @@ def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False
 			fixid = livepoints.find_one({'id': str(pick)})['fixture']
 			if gwfixtures.find_one({'id': str(fixid)})['started']:
 				continue
-		current_team.append(eplplayers.find_one({'id': str(pick)})['name'])
+		current_team.append(pick)
 		teamcount.append(eplplayers.find_one({'id': str(pick)})['team'])
 		if pick == picks['captain'] and include_fpl_captain_twice:
-			current_team.append(eplplayers.find_one({'id': str(pick)})['name'])
+			current_team.append(pick)
 			if picks['chip'] == "3xc":
-				current_team.append(eplplayers.find_one({'id': str(pick)})['name'])
+				current_team.append(pick)
 	for pick in picks['bench']:
 		if exclude:
 			fixid = livepoints.find_one({'id': str(pick)})['fixture']
 			if gwfixtures.find_one({'id': str(fixid)})['started']:
 				continue
-		bench.append(eplplayers.find_one({'id': str(pick)})['name'])
+		bench.append(pick)
 		teamcount.append(eplplayers.find_one({'id': str(pick)})['team'])
 	if picks['chip'] == "bboost":
 		current_team += bench
@@ -86,6 +86,7 @@ def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_
 	team_details, team_count_details = [], []
 	ffcteams = mongo.db.ffcteams
 	eplteams = mongo.db.eplteams
+	eplplayers = mongo.db.eplplayers
 	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
 	gw = get_current_gw()
 	ffccaptains = mongo.db.ffccaptains
@@ -106,7 +107,7 @@ def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_
 			team_details.append(bench)
 	team_details = flatten(team_details)
 	total_player_count = dict(Counter(team_details))
-	total_player_count_sorted = order_dict(total_player_count)
+	total_player_count_sorted = order_dict(dict((eplplayers.find_one({'id': str(k)})['name'], v) for k,v in total_player_count.items()))
 	if team_count:
 		team_count_details = flatten(team_count_details)
 		total_team_count = dict(Counter(team_count_details))
