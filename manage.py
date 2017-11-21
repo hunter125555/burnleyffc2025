@@ -43,7 +43,7 @@ def update_epl_players():
 	with app.app_context():
 		eplplayers = mongo.db.eplplayers
 		eplplayers.delete_many({})
-		eplplayers.insert_many([{'id': str(player['id']), 'name': player['first_name'] + ' ' + player['second_name'], 'team': player['team']} for player in static_data['elements']])
+		eplplayers.insert_many([{'id': player['id'], 'name': player['first_name'] + ' ' + player['second_name'], 'team': player['team'], 'pos': player['element_type']} for player in static_data['elements']])
 
 def update_fpl_managers():
 	with app.app_context():

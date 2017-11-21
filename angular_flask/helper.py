@@ -13,6 +13,11 @@ dynamic_url = 'https://fantasy.premierleague.com/drf/bootstrap-dynamic'
 flatten = lambda l: [item for sublist in l for item in sublist]
 order_dict = lambda d: OrderedDict(sorted(d.items(), key = lambda x: x[1], reverse=True))
 
+def soupify(url):
+	htmltext = requests.get(url)
+	data = htmltext.json()
+	return data
+
 def standard_deviation(lst):
 	num_items = len(lst)
 	mean = sum(lst) / num_items
@@ -20,7 +25,7 @@ def standard_deviation(lst):
 	sq_differences = [d ** 2 for d in differences]
 	ssd = sum(sq_differences)
 	variance = float(ssd) / float(num_items)
-	return math.sqrt(variance)
+	return round(math.sqrt(variance), 2)
 
 def get_current_gw():
 	return mongo.db.currentgw.find_one()['gw']
@@ -66,7 +71,7 @@ def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False
 			if gwfixtures.find_one({'id': str(fixid)})['started']:
 				continue
 		current_team.append(pick)
-		teamcount.append(eplplayers.find_one({'id': str(pick)})['team'])
+		teamcount.append(eplplayers.find_one({'id': pick})['team'])
 		if pick == picks['captain'] and include_fpl_captain_twice:
 			current_team.append(pick)
 			if picks['chip'] == "3xc":
@@ -77,7 +82,7 @@ def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False
 			if gwfixtures.find_one({'id': str(fixid)})['started']:
 				continue
 		bench.append(pick)
-		teamcount.append(eplplayers.find_one({'id': str(pick)})['team'])
+		teamcount.append(eplplayers.find_one({'id': pick})['team'])
 	if picks['chip'] == "bboost":
 		current_team += bench
 	return current_team, bench, teamcount
@@ -107,7 +112,7 @@ def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_
 			team_details.append(bench)
 	team_details = flatten(team_details)
 	total_player_count = dict(Counter(team_details))
-	total_player_count_sorted = order_dict(dict((eplplayers.find_one({'id': str(k)})['name'], v) for k,v in total_player_count.items()))
+	total_player_count_sorted = order_dict(dict((eplplayers.find_one({'id': k})['name'], v) for k,v in total_player_count.items()))
 	if team_count:
 		team_count_details = flatten(team_count_details)
 		total_team_count = dict(Counter(team_count_details))
@@ -209,24 +214,72 @@ def get_scores(team_name, ffc_bench = -1, home_advtg = False, live = True):
 		total += round(0.25*max(scores))
 	return int(total)
 
-def get_capatain_scores(filename):
+def get_capatain_scores(team_name):
 	teamcapscores = []
 	gw = get_current_gw()
-	team_file = os.path.join(team_folder,filename)
-	team_name, ffc_team = read_in_team(team_file)
-	fpl_codes = [entry[1] for entry in list(ffc_team.values())]
-	player_names = [entry[0] for entry in list(ffc_team.values())]
+	ffcteams = mongo.db.ffcteams
+	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
+	player_names = get_ffc_players(team_name)
 	for name, code in zip(player_names, fpl_codes):
 		capscore = []
 		for w in range(1, gw + 1):
-			entry_url = "https://fantasy.premierleague.com/drf/entry/%d/event/%d" % (code, w)
-			data = soupify(entry_url)
-			for pick in data['picks']:
-				if pick['is_captain']:
-					capscore.append(int(pick['points']) * int(pick['multiplier']))
+			gw_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % w
+			gw_data = soupify(gw_url)['elements']
+			picks_url = 'https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks' % (code, w)
+			picks_data = soupify(picks_url)
+			for pick in picks_data['picks']:
+				if pick['is_vice_captain']:
+					capscore.append(int(gw_data[str(pick['element'])]['stats']['total_points']))
 		sd = standard_deviation(capscore)
-		teamcapscores.append((name, sum(capscore), float(sum(capscore)) / float (gw), sd))
+		teamcapscores.append((name, sum(capscore), round(float(sum(capscore)) / float (gw), 2), sd))
 	return teamcapscores
+
+def get_team_scores(team_name):
+	gkteamscores = {}
+	defteamscores = {}
+	midteamscores  = {}
+	fwdteamscores = {}
+	gw = get_current_gw()
+	ffcteams = mongo.db.ffcteams
+	eplplayers = mongo.db.eplplayers
+	eplteams = mongo.db.eplteams
+	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
+	player_names = get_ffc_players(team_name)
+	for name, fcode in zip(player_names, fpl_codes):
+		for w in range(11, gw + 1):
+			gw_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % w
+			gw_data = soupify(gw_url)['elements']
+			picks_url = 'https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks' % (fcode, w)
+			picks_data = soupify(picks_url)
+			for pick in picks_data['picks']:
+				player_points = int(gw_data[str(pick['element'])]['stats']['total_points'])
+				player_data = eplplayers.find_one({'id': pick['element']})
+				if player_data['pos'] == 1:
+					if player_data['team'] not in gkteamscores:
+						gkteamscores[player_data['team']] = player_points
+					else:
+						gkteamscores[player_data['team']] += player_points
+				elif player_data['pos'] == 2:
+					if player_data['team'] not in defteamscores:
+						defteamscores[player_data['team']] = player_points
+					else:
+						defteamscores[player_data['team']] += player_points
+				elif player_data['pos'] == 3:
+					if player_data['team'] not in midteamscores:
+						midteamscores[player_data['team']] = player_points
+					else:
+						midteamscores[player_data['team']] += player_points
+				elif player_data['pos'] == 4:
+					if player_data['team'] not in fwdteamscores:
+						fwdteamscores[player_data['team']] = player_points
+					else:
+						fwdteamscores[player_data['team']] += player_points
+	gkteamscores = order_dict(dict((eplteams.find_one({'id': k})['short'], v) for k,v in gkteamscores.items()))
+	defteamscores = order_dict(dict((eplteams.find_one({'id': k})['short'], v) for k,v in defteamscores.items()))
+	midteamscores = order_dict(dict((eplteams.find_one({'id': k})['short'], v) for k,v in midteamscores.items()))
+	fwdteamscores = order_dict(dict((eplteams.find_one({'id': k})['short'], v) for k,v in fwdteamscores.items()))
+	result = [gkteamscores, defteamscores, midteamscores, fwdteamscores]
+	return result
 
 def get_top_chips(rank):
 	chips = {}

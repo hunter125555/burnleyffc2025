@@ -19,9 +19,17 @@ def get_scorecard():
 
 @app.route('/captain_scores', methods = ['GET'])
 def get_captain_scores():
-	team_name = request.args.get('team') + ".txt"
-	team_name = team_name.lower()
-	return json.dumps(helper.get_capatain_scores(team_name))
+	team_name = request.args.get('team')
+	result = helper.get_capatain_scores(team_name)
+	print result
+	return json.dumps(result)
+
+@app.route('/team_scores', methods = ['GET'])
+def get_team_scores():
+	team_name = request.args.get('team')
+	result = helper.get_team_scores(team_name)
+	print result
+	return json.dumps(result)
 
 @app.route('/chip_usage', methods = ['GET'])
 def get_chips_usage():
