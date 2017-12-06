@@ -113,6 +113,13 @@ def get_all_fixtures_score():
 		livefixtures.append([(homeTeam, homeTeamScore), (awayTeam, awayTeamScore)])
 	return json.dumps(livefixtures)
 
+@app.route('/update', methods = ['GET'])
+def update_gw_data():
+	if request.args.get('week') == "yes":
+		return json.dumps(helper.update_data())
+	else:
+		return json.dumps(helper.update_live_points())
+
 @app.route('/')
 @app.route('/tie')
 @app.route('/scorecard')

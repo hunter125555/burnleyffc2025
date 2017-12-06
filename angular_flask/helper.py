@@ -354,3 +354,62 @@ def get_ffc_hof(gw):
 		}
 		board.append(obj)
 	return board
+
+def update_current_gw():
+	static_url = 'https://fantasy.premierleague.com/drf/bootstrap-static'
+	static_data = soupify(static_url)
+	currentgw = mongo.db.currentgw
+	eid = currentgw.find_one()['_id']
+	gw = static_data['current-event']
+	currentgw.find_one_and_update({'_id': eid}, {'$set': {'gw': gw}})
+
+def update_gw_fixtures():
+	gwfixtures = mongo.db.gwfixtures
+	gwfixtures.delete_many({})
+	gw = mongo.db.currentgw.find_one()['gw']
+	live_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % gw
+	live_data = soupify(live_url)
+	gwfixtures.insert_many({'id': str(fix['id']), 'started': fix['started'], 'home': fix['team_h'], 'away': fix['team_a']} for fix in live_data['fixtures'])
+
+def update_live_points():
+	livepoints = mongo.db.livepoints
+	livepoints.delete_many({})
+	gw = mongo.db.currentgw.find_one()['gw']
+	live_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % gw
+	live_data = soupify(live_url)['elements']
+	livepoints.insert_many({'id': str(player[0]), 'fixture': player[1]['explain'][0][1], 'points': player[1]['stats']['total_points']} for player in live_data.items())
+	return 'Live points updated'
+
+def update_ffc_picks():
+	ffcteams = mongo.db.ffcteams
+	ffcpicks = mongo.db.ffcpicks
+	ffcpicks.delete_many({})
+	gw = mongo.db.currentgw.find_one()['gw']
+	for team in teamList:
+		obj = ffcteams.find_one({'team': team})
+		for code in obj['codes']:
+			picks_url = 'https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks' % (code, gw)
+			gw_data = soupify(picks_url)
+			playing, bench = [], []
+			captain = None
+			vicecaptain = None
+			chip = gw_data['active_chip']
+			points = gw_data['entry_history']['points']
+			transcost = gw_data['entry_history']['event_transfers_cost']
+			for pick in gw_data['picks']:
+				if pick['is_captain']:
+					captain = pick['element']
+				if pick['is_vice_captain']:
+					vicecaptain = pick['element']
+				if pick['position'] >= 12:
+					bench.append(pick['element'])
+				else:
+					playing.append(pick['element'])
+			ffcpicks.insert_one({'code': code, 'points': points, 'captain': captain, 'vicecaptain': vicecaptain, 'chip': chip, 'cost': transcost, 'playing': playing, 'bench': bench})
+
+def update_data():
+	update_current_gw()
+	update_gw_fixtures()
+	update_live_points()
+	update_ffc_picks()
+	return 'Success'

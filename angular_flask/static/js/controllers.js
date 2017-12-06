@@ -3,8 +3,24 @@
 
 /* Controllers */
 
-function IndexController($scope, $rootScope) {
-	
+function IndexController($scope, $http) {
+	$scope.updateData = function(){
+		$http.get("/update?week=yes").
+			then(function(response) {
+				alert(response.data);
+		}, function(error){
+			console.log(error);
+		});
+	}
+
+	$scope.updateLiveData = function(){
+		$http.get("/update?week=no").
+			then(function(response) {
+				alert(response.data);
+		}, function(error){
+			console.log(error);
+		});
+	}
 }
 
 function FixController($scope, $rootScope, $http) {
