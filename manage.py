@@ -2,6 +2,7 @@ import os
 import json
 import argparse
 import requests
+from collections import Counter, OrderedDict
 
 from angular_flask.core import mongo
 
@@ -127,9 +128,28 @@ def update_ffc_bench():
 	with app.app_context():
 		ffcbench = mongo.db.ffcbench
 		ffcbench.delete_many({})
-		benchCodes = [237830, 510011, 1231, 223, 776734, 664043, 672855, 8041, 351798, 2427210, 2012353, 1783450, 536740, 2521225, 220254, 121718, 451342, 59406, 469030, 765882]
+		benchCodes = [452335, 2110726, 17, 223, 765110, 1095226, 54157, 8041, 47820, 1243628, 2658923, 44900, 455199, 80362, 887934, 740488, 451342, 220487, 944610, 768585]
 		for team, bcode in zip(teamList, benchCodes):
 			ffcbench.insert_one({'team': team, 'bench': bcode})
+
+def analyze_tx_history():
+	with app.app_context():
+		order_dict = lambda d: OrderedDict(sorted(d.items(), key = lambda x: x[1], reverse=True))
+		eplplayers = mongo.db.eplplayers
+		playerlist = list(eplplayers.find())
+		tx_dict = dict()
+		for player in playerlist:
+			player_url = 'https://fantasy.premierleague.com/drf/element-summary/%d' % (player['id'])
+			player_history = soupify(player_url)['history']
+			tx_dict[player['name']] = 0
+			for w in player_history:
+				if w['transfers_balance'] >= 0:
+					tx_dict[player['name']] += 1
+				else:
+					tx_dict[player['name']] -= 1
+		import code; code.interact(local=locals())
+		final_dict = order_dict(tx_dict)
+		print take(20, final_dict.iteritems())
 
 def update_for_gw():
 	update_current_gw()
@@ -177,6 +197,8 @@ def main():
 	elif args.command == 'update_for_gw':
 		update_for_gw()
 		print "Update for GW complete!"
+	elif args.command == 'tx':
+		analyze_tx_history()
 	elif args.command == 'test':
 		update_test()
 		print "Test pass!"
