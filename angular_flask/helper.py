@@ -228,11 +228,21 @@ def get_capatain_scores(team_name):
 			picks_url = 'https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks' % (code, w)
 			picks_data = soupify(picks_url)
 			for pick in picks_data['picks']:
-				if pick['is_vice_captain']:
-					capscore.append(int(gw_data[str(pick['element'])]['stats']['total_points']))
+				if pick['is_captain']:
+					capscore.append(int(gw_data[str(pick['element'])]['stats']['total_points']) * int(pick['multiplier']))
 		sd = standard_deviation(capscore)
 		teamcapscores.append((name, sum(capscore), round(float(sum(capscore)) / float (gw), 2), sd))
-	return teamcapscores
+	board = []
+	teamcapscores = sorted(teamcapscores, key=lambda x: x[1], reverse=True)
+	for row in teamcapscores:
+		item = {
+			'Player': row[0],
+			'Points': row[1],
+			'Avg': row[2],
+			'Std': row[3]
+		}
+		board.append(item)
+	return board
 
 def get_team_scores(team_name):
 	gkteamscores = {}

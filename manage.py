@@ -120,7 +120,7 @@ def update_ffc_captains():
 	with app.app_context():
 		ffccaptains = mongo.db.ffccaptains
 		ffccaptains.delete_many({})
-		capCodes = [1071073, 896742, 1214, 744326, 801354, 124928, 228065, 297803, 8489, 2648144, 674118, 3936, 157578, 1982128, 636045, 666138, 2649005, 43539, 29057, 58316]
+		capCodes = [473529, 778678, 31578, 5378, 148047, 664043, 54157, 665036, 351798, 84958, 18200, 638, 568263, 668348, 887934, 3198, 77415, 1324944, 97861, 365145]
 		for team, capcode in zip(teamList, capCodes):
 			ffccaptains.insert_one({'team': team, 'captain': capcode})
 
@@ -128,7 +128,7 @@ def update_ffc_bench():
 	with app.app_context():
 		ffcbench = mongo.db.ffcbench
 		ffcbench.delete_many({})
-		benchCodes = [944085, 2110726, 617980, 1375, 1566657, 1095226, 672855, 8041, 2866, 210579, 7243, 2793465, 773359, 2521225, 338953, 126461, 155651, 1324944, 1030490, 365145]
+		benchCodes = [110393, 2110726, 1231, 1860, 856543, 556122, 228065, 8041, 1371086, 210579, 41341, 212642, 1955609, 1009939, 636045, 744038, 2649005, 59406, 1030490, 679521]
 		for team, bcode in zip(teamList, benchCodes):
 			ffcbench.insert_one({'team': team, 'bench': bcode})
 

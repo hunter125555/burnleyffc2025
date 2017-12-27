@@ -40,6 +40,23 @@ function FixController($scope, $rootScope, $http) {
 	}
 }
 
+function CaptainController($scope, $rootScope, $http) {
+	$scope.board = [];
+	$scope.displayTable = false;
+	$scope.team = "Arsenal";
+	$scope.loadCaptains = function() {
+		$http.get("/captain_scores?team=" + $scope.team).
+			then(function(response) {
+				$scope.displayTable = true;
+				$scope.board = response.data;
+				console.log(response.data);
+		}, function(error) {
+			console.log(error);
+		});
+	}
+}
+
+
 function ScoreBoardController($scope, $rootScope, $http) {
 	$scope.board = [];
 	$scope.displayTable = false;

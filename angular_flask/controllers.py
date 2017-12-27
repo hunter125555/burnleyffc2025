@@ -21,7 +21,6 @@ def get_scorecard():
 def get_captain_scores():
 	team_name = request.args.get('team')
 	result = helper.get_capatain_scores(team_name)
-	print result
 	return json.dumps(result)
 
 @app.route('/team_scores', methods = ['GET'])
@@ -127,6 +126,7 @@ def update_gw_data():
 @app.route('/player-count')
 @app.route('/halloffame')
 @app.route('/livefixtures')
+@app.route('/captains')
 def basic_pages(**kwargs):
 	return make_response(open('angular_flask/templates/index.html').read())
 

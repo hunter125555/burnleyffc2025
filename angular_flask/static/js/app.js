@@ -35,6 +35,10 @@ angular.module('AngularFlask', ['angularFlaskServices', 'smart-table'])
 			templateUrl: '../static/partials/fixtures.html',
 			controller: FixController
 		})
+		.when('/captains', {
+			templateUrl: '../static/partials/captain.html',
+			controller: CaptainController
+		})
 		.otherwise({
 			redirectTo: '/'
 		});

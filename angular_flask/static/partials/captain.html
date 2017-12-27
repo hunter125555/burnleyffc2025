@@ -1,0 +1,24 @@
+<div ng-controller = "CaptainController">
+	<label>Enter the team to display FPL Captain scores of FFC players</label>
+	<form name = "entryForm">
+		<select ng-model="team" ng-options="team for team in teamList" required>
+    		<option value="">Select Team</option>
+		</select>
+		<button ng-disabled = "entryForm.$invalid" ng-click="loadCaptains()">Populate</button>
+	</form>
+	<table ng-show = "displayTable" st-table = "board" class = "table table-striped">
+		<tr>
+			<th>Player</th>
+			<th>Total Captain Points</th>
+			<th>Average Captain Points</th>
+			<th>Standard Deviation</th>
+		</tr>
+		<tr ng-repeat="card in board">
+			<td>{{ card.Player }}</td>
+			<td>{{ card.Points }}</td>
+			<td> {{ card.Avg }}</td>
+			<td>{{ card.Std }}</td>
+			<td><a ng-href = " {{ card.Link}} ">{{ card.Link }}</a></td>
+		</tr>
+	</table>
+</div>
