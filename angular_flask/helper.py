@@ -387,7 +387,8 @@ def update_live_points():
 	gw = mongo.db.currentgw.find_one()['gw']
 	live_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % gw
 	live_data = soupify(live_url)['elements']
-	livepoints.insert_many({'id': str(player[0]), 'fixture': player[1]['explain'][0][1], 'points': player[1]['stats']['total_points']} for player in live_data.items())
+	#livepoints.insert_many({'id': str(player[0]), 'fixture': player[1]['explain'][0][1], 'points': player[1]['stats']['total_points']} for player in live_data.items())
+	livepoints.insert_many({'id': str(player[0]), 'points': player[1]['stats']['total_points']} for player in live_data.items())
 	return 'Live points updated'
 
 def update_ffc_picks():
