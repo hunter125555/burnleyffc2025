@@ -87,7 +87,7 @@ def get_current_team(fplcode, include_fpl_captain_twice = False, exclude = False
 		current_team += bench
 	return current_team, bench, teamcount
 
-def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False, team_count = False, consider_ffc_bench = False):
+def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_captain_twice = False, include_fpl_bench=False, exclude = False, team_count = False, consider_ffc_bench = False, diff = False):
 	team_details, team_count_details = [], []
 	ffcteams = mongo.db.ffcteams
 	eplteams = mongo.db.eplteams
@@ -112,6 +112,8 @@ def get_ffcteamdetails(team_name, ffc_captain = -1, ffc_bench = -1, include_fpl_
 			team_details.append(bench)
 	team_details = flatten(team_details)
 	total_player_count = dict(Counter(team_details))
+	if diff:
+		total_player_count = {k: v for k, v in total_player_count.items() if v <= 3}
 	total_player_count_sorted = order_dict(dict((eplplayers.find_one({'id': k})['name'], v) for k,v in total_player_count.items()))
 	if team_count:
 		team_count_details = flatten(team_count_details)
@@ -387,8 +389,8 @@ def update_live_points():
 	gw = mongo.db.currentgw.find_one()['gw']
 	live_url = 'https://fantasy.premierleague.com/drf/event/%d/live' % gw
 	live_data = soupify(live_url)['elements']
-	#livepoints.insert_many({'id': str(player[0]), 'fixture': player[1]['explain'][0][1], 'points': player[1]['stats']['total_points']} for player in live_data.items())
-	livepoints.insert_many({'id': str(player[0]), 'points': player[1]['stats']['total_points']} for player in live_data.items())
+	livepoints.insert_many({'id': str(player[0]), 'fixture': player[1]['explain'][0][1], 'points': player[1]['stats']['total_points']} for player in live_data.items())
+	#livepoints.insert_many({'id': str(player[0]), 'points': player[1]['stats']['total_points']} for player in live_data.items())
 	return 'Live points updated'
 
 def update_ffc_picks():
