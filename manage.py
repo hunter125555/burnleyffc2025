@@ -99,7 +99,10 @@ def update_ffc_picks():
 			obj = ffcteams.find_one({'team': team})
 			for code in obj['codes']:
 				picks_url = 'https://fantasy.premierleague.com/drf/entry/%d/event/%d/picks' % (code, gw)
-				gw_data = soupify(picks_url)
+				try:
+					gw_data = soupify(picks_url)
+				except ValueError:
+					print picks_url
 				playing, bench = [], []
 				captain = None
 				vicecaptain = None
@@ -121,7 +124,7 @@ def update_ffc_captains():
 	with app.app_context():
 		ffccaptains = mongo.db.ffccaptains
 		ffccaptains.delete_many({})
-		capCodes = [473529, 778678, 31578, 5378, 148047, 664043, 54157, 665036, 351798, 84958, 18200, 638, 568263, 668348, 887934, 3198, 77415, 1324944, 97861, 365145]
+		capCodes = [5609, 5065, 9350, 223, 776734, 76521, 350414, 1167796, 683730, 16471, 7243, 970393, 559067, 85810, 220254, 667989, 155651, 224000, 7496, 663518]
 		for team, capcode in zip(teamList, capCodes):
 			ffccaptains.insert_one({'team': team, 'captain': capcode})
 
@@ -129,7 +132,7 @@ def update_ffc_bench():
 	with app.app_context():
 		ffcbench = mongo.db.ffcbench
 		ffcbench.delete_many({})
-		benchCodes = [110393, 2110726, 1231, 1860, 856543, 556122, 228065, 8041, 1371086, 210579, 41341, 212642, 1955609, 1009939, 636045, 744038, 2649005, 59406, 1030490, 679521]
+		benchCodes = [237830, 4629, 90373, 613856, 1566657, 2307, 1535142, 3465481, 351798, 208003, 2658923, 44900, 262843, 3758662, 234593, 666138, 673387, 130215, 12927, 644991]
 		for team, bcode in zip(teamList, benchCodes):
 			ffcbench.insert_one({'team': team, 'bench': bcode})
 
