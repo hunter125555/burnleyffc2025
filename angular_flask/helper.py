@@ -220,8 +220,10 @@ def get_capatain_scores(team_name):
 	teamcapscores = []
 	gw = get_current_gw()
 	ffcteams = mongo.db.ffcteams
+	eplplayers = mongo.db.eplplayers
 	fpl_codes = ffcteams.find_one({'team': team_name})['codes']
 	player_names = get_ffc_players(team_name)
+	caps = {}
 	for name, code in zip(player_names, fpl_codes):
 		capscore = []
 		for w in range(1, gw + 1):
@@ -232,9 +234,17 @@ def get_capatain_scores(team_name):
 			for pick in picks_data['picks']:
 				if pick['is_captain']:
 					capscore.append(int(gw_data[str(pick['element'])]['stats']['total_points']) * int(pick['multiplier']))
+					player_name = eplplayers.find_one({'id': pick['element']})['name']
+					if player_name in caps:
+						caps[player_name] += 1
+					else:
+						caps[player_name] = 1
 		sd = standard_deviation(capscore)
 		teamcapscores.append((name, sum(capscore), round(float(sum(capscore)) / float (gw), 2), sd))
 	board = []
+	caps = order_dict(caps)
+	for k, v in caps.items():
+		print k + ': ' + str(v)
 	teamcapscores = sorted(teamcapscores, key=lambda x: x[1], reverse=True)
 	for row in teamcapscores:
 		item = {
@@ -384,6 +394,7 @@ def update_gw_fixtures():
 	gwfixtures.insert_many({'id': str(fix['id']), 'started': fix['started'], 'home': fix['team_h'], 'away': fix['team_a']} for fix in live_data['fixtures'])
 
 def update_live_points():
+	update_gw_fixtures()
 	livepoints = mongo.db.livepoints
 	livepoints.delete_many({})
 	gw = mongo.db.currentgw.find_one()['gw']
