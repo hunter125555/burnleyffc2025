@@ -36,7 +36,7 @@ def get_ffc_players(team_name):
 	fplcodes = ffcteams.find_one({'team': team_name})['codes']
 	player_names = []
 	for code in fplcodes:
-		player_names.append(fplmanagers.find_one({'code': str(code)})['name'])
+		player_names.append(fplmanagers.find_one({'code': code})['name'])
 	return player_names
 
 def read_in_team(filename):

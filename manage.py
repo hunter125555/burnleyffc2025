@@ -55,7 +55,7 @@ def update_fpl_managers():
 			team_file = os.path.join(team_folder, team)
 			team_name, ffc_team = helper.read_in_team(team_file)
 			codenametuples = [(player[1][1], player[1][0]) for player in ffc_team.items()]
-			fplmanagers.insert_many([{'code': str(tup[0]), 'name': tup[1]} for tup in codenametuples])
+			fplmanagers.insert_many([{'code': tup[0], 'name': tup[1]} for tup in codenametuples])
 
 def update_ffcteams():
 	with app.app_context():
@@ -132,7 +132,7 @@ def update_ffc_bench():
 	with app.app_context():
 		ffcbench = mongo.db.ffcbench
 		ffcbench.delete_many({})
-		benchCodes = [452335, 510011, 1214, 903018, 801354, 1095226, 228065, 800494, 1371086, 210579, 1841269, 2793465, 1155448, 1982128, 743617, 666138, 3438, 59406, 1898443, 514199]
+		benchCodes = [2447194, 896742, 90373, 343681, 801354, 755683, 672855, 3465481, 351798, 84958, 41341, 16553, 568263, 3758662, 743617, 540557, 673387, 220487, 29057, 514199]
 		for team, bcode in zip(teamList, benchCodes):
 			ffcbench.insert_one({'team': team, 'bench': bcode})
 
